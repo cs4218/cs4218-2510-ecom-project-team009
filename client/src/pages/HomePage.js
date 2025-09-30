@@ -87,7 +87,7 @@ const HomePage = () => {
     setChecked(all);
   };
   useEffect(() => {
-    if (!checked.length || !radio.length) getAllProducts();
+    if (!checked.length && !radio.length) getAllProducts();
   }, [checked.length, radio.length]);
 
   useEffect(() => {
@@ -96,12 +96,14 @@ const HomePage = () => {
 
   //get filterd product
   const filterProduct = async () => {
+    console.log(checked, radio);
     try {
       const { data } = await axios.post("/api/v1/product/product-filters", {
         checked,
         radio,
       });
       setProducts(data?.products);
+      setTotal(data?.products.length);
     } catch (error) {
       console.log(error);
     }
