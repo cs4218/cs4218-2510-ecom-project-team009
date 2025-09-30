@@ -9,7 +9,7 @@ export default {
   // jest does not recognise jsx files by default, so we use babel to transform any jsx files
   transform: {
     "^.+\\.jsx?$": "babel-jest",
-  },
+},
 
   // tells jest how to handle css/scss imports in your tests
   moduleNameMapper: {

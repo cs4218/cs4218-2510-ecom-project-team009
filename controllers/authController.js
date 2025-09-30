@@ -28,11 +28,12 @@ export const registerController = async (req, res) => {
     }
     //check user
     const exisitingUser = await userModel.findOne({ email });
+
     //exisiting user
     if (exisitingUser) {
-      return res.status(200).send({
+      return res.status(409).send({
         success: false,
-        message: "Already Register please login",
+        message: "Already existing user please login",
       });
     }
     //register user
@@ -56,7 +57,7 @@ export const registerController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Errro in Registeration",
+      message: "Error in Registeration",
       error,
     });
   }
@@ -83,7 +84,8 @@ export const loginController = async (req, res) => {
     }
     const match = await comparePassword(password, user.password);
     if (!match) {
-      return res.status(200).send({
+      return res.status(401).send({
+        // bug diego: should return 401 instead of 200
         success: false,
         message: "Invalid Password",
       });
@@ -121,13 +123,13 @@ export const forgotPasswordController = async (req, res) => {
   try {
     const { email, answer, newPassword } = req.body;
     if (!email) {
-      res.status(400).send({ message: "Emai is required" });
+      res.status(400).send({ message: "Email is required" }); // Bug Diego: Typo Emai to Email
     }
     if (!answer) {
-      res.status(400).send({ message: "answer is required" });
+      res.status(400).send({ message: "Answer is required" }); // Bug Diego: Proper capitalization answer to Answer
     }
     if (!newPassword) {
-      res.status(400).send({ message: "New Password is required" });
+      res.status(400).send({ message: "New password is required" }); // Bug Diego: Proper capitalization Password to password
     }
     //check
     const user = await userModel.findOne({ email, answer });
@@ -135,14 +137,14 @@ export const forgotPasswordController = async (req, res) => {
     if (!user) {
       return res.status(404).send({
         success: false,
-        message: "Wrong Email Or Answer",
+        message: "Wrong email or answer", // Bug Diego: Proper capitalization
       });
     }
     const hashed = await hashPassword(newPassword);
     await userModel.findByIdAndUpdate(user._id, { password: hashed });
     res.status(200).send({
       success: true,
-      message: "Password Reset Successfully",
+      message: "Password reset successfully",
     });
   } catch (error) {
     console.log(error);
@@ -154,24 +156,19 @@ export const forgotPasswordController = async (req, res) => {
   }
 };
 
-//test controller
-export const testController = (req, res) => {
-  try {
-    res.send("Protected Routes");
-  } catch (error) {
-    console.log(error);
-    res.send({ error });
-  }
-};
+// Bug Diego: Removed testController (Dead Code)
 
-//update prfole
+// update profile
 export const updateProfileController = async (req, res) => {
   try {
-    const { name, email, password, address, phone } = req.body;
+    const { name, password, address, phone } = req.body;
     const user = await userModel.findById(req.user._id);
+
     //password
     if (password && password.length < 6) {
-      return res.json({ error: "Passsword is required and 6 character long" });
+      return res
+        .status()
+        .json({ error: "Password is required and 6 character long" });
     }
     const hashedPassword = password ? await hashPassword(password) : undefined;
     const updatedUser = await userModel.findByIdAndUpdate(
@@ -186,14 +183,14 @@ export const updateProfileController = async (req, res) => {
     );
     res.status(200).send({
       success: true,
-      message: "Profile Updated SUccessfully",
+      message: "Profile updated successfully",
       updatedUser,
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      message: "Error WHile Update profile",
+      message: "Error while updating profile",
       error,
     });
   }
@@ -206,16 +203,21 @@ export const getOrdersController = async (req, res) => {
       .find({ buyer: req.user._id })
       .populate("products", "-photo")
       .populate("buyer", "name");
-    res.json(orders);
+    res.status(200).send({
+      success: true,
+      message: "Orders fetched successfully",
+      orders,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
+      message: "Error while getting orders",
       error,
     });
   }
 };
+
 //orders
 export const getAllOrdersController = async (req, res) => {
   try {
@@ -224,12 +226,16 @@ export const getAllOrdersController = async (req, res) => {
       .populate("products", "-photo")
       .populate("buyer", "name")
       .sort({ createdAt: "-1" });
-    res.json(orders);
+    res.status(200).send({
+      success: true,
+      message: "Orders fetched successfully",
+      orders,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
+      message: "Error while getting orders",
       error,
     });
   }
@@ -245,12 +251,16 @@ export const orderStatusController = async (req, res) => {
       { status },
       { new: true }
     );
-    res.json(orders);
+    res.status(200).send({
+      success: true,
+      message: "Order updated successfully",
+      orders,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error While Updateing Order",
+      message: "Error while updating order",
       error,
     });
   }
