@@ -96,7 +96,6 @@ const HomePage = () => {
 
   //get filterd product
   const filterProduct = async () => {
-    console.log(checked, radio);
     try {
       const { data } = await axios.post("/api/v1/product/product-filters", {
         checked,

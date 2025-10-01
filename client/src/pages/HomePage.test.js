@@ -644,9 +644,192 @@ describe("HomePage Component - Systematic Testing", () => {
   });
 
   // ========================================
-  // INTEGRATION TESTS
+  // CODE COVERAGE: Uncovered Branches
   // ========================================
-  describe("Integration: User Workflows", () => {
+  describe("Coverage: handleFilter else block", () => {
+    it("should remove category from checked when checkbox is unchecked", async () => {
+      axios.post.mockResolvedValue({
+        data: { products: [mockProducts[0]] },
+      });
+
+      render(
+        <MemoryRouter>
+          <HomePage />
+        </MemoryRouter>
+      );
+
+      const checkbox = await screen.findByRole("checkbox", {
+        name: /electronics/i,
+      });
+
+      // First click - adds to checked (if block)
+      fireEvent.click(checkbox);
+
+      await waitFor(() => {
+        expect(axios.post).toHaveBeenCalledWith(
+          "/api/v1/product/product-filters",
+          { checked: ["1"], radio: [] }
+        );
+      });
+
+      axios.post.mockClear();
+
+      // Second click - removes from checked (else block)
+      fireEvent.click(checkbox);
+
+      await waitFor(() => {
+        expect(axios.get).toHaveBeenCalledWith(
+          "/api/v1/product/product-list/1"
+        );
+      });
+    });
+  });
+
+  describe("Coverage: getAllProducts catch block", () => {
+    it("should handle error in getAllProducts and log it", async () => {
+      const consoleSpy = jest
+        .spyOn(console, "log")
+        .mockImplementation(() => {});
+
+      axios.get.mockImplementation((url) => {
+        if (url.includes("/api/v1/product/product-list")) {
+          return Promise.reject(new Error("Failed to fetch products"));
+        }
+        if (url.includes("/api/v1/category/get-category")) {
+          return Promise.resolve({
+            data: { success: true, category: mockCategories },
+          });
+        }
+        if (url.includes("/api/v1/product/product-count")) {
+          return Promise.resolve({ data: { total: 10 } });
+        }
+        return Promise.reject(new Error("Not found"));
+      });
+
+      render(
+        <MemoryRouter>
+          <HomePage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+      });
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("Coverage: getTotal catch block", () => {
+    it("should handle error in getTotal and log it", async () => {
+      const consoleSpy = jest
+        .spyOn(console, "log")
+        .mockImplementation(() => {});
+
+      axios.get.mockImplementation((url) => {
+        if (url.includes("/api/v1/product/product-count")) {
+          return Promise.reject(new Error("Failed to get count"));
+        }
+        if (url.includes("/api/v1/category/get-category")) {
+          return Promise.resolve({
+            data: { success: true, category: mockCategories },
+          });
+        }
+        if (url.includes("/api/v1/product/product-list")) {
+          return Promise.resolve({ data: { products: mockProducts } });
+        }
+        return Promise.reject(new Error("Not found"));
+      });
+
+      render(
+        <MemoryRouter>
+          <HomePage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+      });
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("Coverage: loadMore catch block", () => {
+    it("should handle error in loadMore and log it", async () => {
+      const consoleSpy = jest
+        .spyOn(console, "log")
+        .mockImplementation(() => {});
+
+      axios.get.mockImplementation((url) => {
+        if (url.includes("/api/v1/product/product-list/2")) {
+          return Promise.reject(new Error("Failed to load more"));
+        }
+        if (url.includes("/api/v1/product/product-list/1")) {
+          return Promise.resolve({ data: { products: mockProducts } });
+        }
+        if (url.includes("/api/v1/category/get-category")) {
+          return Promise.resolve({
+            data: { success: true, category: mockCategories },
+          });
+        }
+        if (url.includes("/api/v1/product/product-count")) {
+          return Promise.resolve({ data: { total: 10 } });
+        }
+        return Promise.reject(new Error("Not found"));
+      });
+
+      render(
+        <MemoryRouter>
+          <HomePage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Loadmore")).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText("Loadmore"));
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+      });
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("Coverage: filterProduct catch block", () => {
+    it("should handle error in filterProduct and log it", async () => {
+      const consoleSpy = jest
+        .spyOn(console, "log")
+        .mockImplementation(() => {});
+
+      axios.post.mockRejectedValue(new Error("Filter API failed"));
+
+      render(
+        <MemoryRouter>
+          <HomePage />
+        </MemoryRouter>
+      );
+
+      const checkbox = await screen.findByRole("checkbox", {
+        name: /electronics/i,
+      });
+      fireEvent.click(checkbox);
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+      });
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  // ========================================
+  // Multiple Step User Workflows
+  // ========================================
+  describe("User workflows with multiple steps", () => {
     it("should complete filter-reset-load more workflow", async () => {
       axios.post.mockResolvedValue({
         data: { products: [mockProducts[0]] },
