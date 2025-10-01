@@ -54,7 +54,6 @@ export const registerController = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error in Registeration",
@@ -108,7 +107,6 @@ export const loginController = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error in login",
@@ -147,7 +145,6 @@ export const forgotPasswordController = async (req, res) => {
       message: "Password reset successfully",
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Something went wrong",
@@ -187,7 +184,6 @@ export const updateProfileController = async (req, res) => {
       updatedUser,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error while updating profile",
@@ -209,7 +205,6 @@ export const getOrdersController = async (req, res) => {
       orders,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error while getting orders",
@@ -232,7 +227,6 @@ export const getAllOrdersController = async (req, res) => {
       orders,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error while getting orders",
@@ -257,7 +251,6 @@ export const orderStatusController = async (req, res) => {
       orders,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error while updating order",
@@ -265,3 +258,5 @@ export const orderStatusController = async (req, res) => {
     });
   }
 };
+
+// bug diego: remove console.log(error) from all controllers

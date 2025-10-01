@@ -11,7 +11,12 @@ export const requireSignIn = async (req, res, next) => {
     req.user = decode;
     next();
   } catch (error) {
-    console.log(error);
+    // Bug Diego: should return something
+    res.status(401).send({
+      success: false,
+      error,
+      message: "Unauthorized Access",
+    });
   }
 };
 
@@ -19,20 +24,22 @@ export const requireSignIn = async (req, res, next) => {
 export const isAdmin = async (req, res, next) => {
   try {
     const user = await userModel.findById(req.user._id);
-    if (user.role !== 1) {
+    if (!user || user.role !== 1) {
+      // Bug diego: add check if user is null
       return res.status(401).send({
         success: false,
-        message: "UnAuthorized Access",
+        message: "Unauthorized access",
       });
     } else {
       next();
     }
   } catch (error) {
-    console.log(error);
-    res.status(401).send({
+    res.status(500).send({
       success: false,
       error,
       message: "Error in admin middleware",
     });
   }
 };
+
+// Bug Diego: remove console.log(error) from all middlewares
