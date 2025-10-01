@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1759294748706" clover="3.2.0">
-  <project timestamp="1759294748707" name="All files">
-    <metrics statements="261" coveredstatements="92" conditionals="84" coveredconditionals="48" methods="31" coveredmethods="9" elements="376" coveredelements="149" complexity="0" loc="261" ncloc="261" packages="2" files="4" classes="4"/>
+<coverage generated="1759297148199" clover="3.2.0">
+  <project timestamp="1759297148199" name="All files">
+    <metrics statements="269" coveredstatements="100" conditionals="84" coveredconditionals="48" methods="33" coveredmethods="11" elements="386" coveredelements="159" complexity="0" loc="269" ncloc="269" packages="3" files="5" classes="5"/>
     <package name="controllers">
       <metrics statements="248" coveredstatements="79" conditionals="80" coveredconditionals="44" methods="29" coveredmethods="7"/>
       <file name="authController.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/controllers/authController.js">
@@ -260,6 +260,20 @@
         <line num="368" count="0" type="stmt"/>
         <line num="370" count="0" type="stmt"/>
         <line num="375" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="helpers">
+      <metrics statements="8" coveredstatements="8" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+      <file name="authHelper.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/helpers/authHelper.js">
+        <metrics statements="8" coveredstatements="8" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="13" count="1" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
       </file>
     </package>
     <package name="middlewares">
