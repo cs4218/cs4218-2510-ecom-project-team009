@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
 import { AiOutlineReload } from "react-icons/ai";
 import "../styles/Homepages.css";
+import { useAuth } from "../context/auth";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const HomePage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [auth] = useAuth();
+  const userId = auth?.user?._id || "guest";
 
   //get all cat
   const getAllCategory = async () => {
@@ -185,7 +188,7 @@ const HomePage = () => {
                       onClick={() => {
                         setCart([...cart, p]);
                         localStorage.setItem(
-                          "cart",
+                          `cart_${userId}`,
                           JSON.stringify([...cart, p])
                         );
                         toast.success("Item Added to cart");

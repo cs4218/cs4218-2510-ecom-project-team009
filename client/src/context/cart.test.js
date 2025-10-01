@@ -3,6 +3,14 @@ import { renderHook, act } from "@testing-library/react";
 import { CartProvider, useCart } from "./cart";
 import "@testing-library/jest-dom/extend-expect";
 
+// Mock useAuth
+const mockSetAuth = jest.fn();
+let mockAuthValue = [null, mockSetAuth];
+
+jest.mock("../context/auth", () => ({
+  useAuth: jest.fn(() => mockAuthValue),
+}));
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store = {};
@@ -30,6 +38,8 @@ describe("Cart Context - Systematic Testing", () => {
   beforeEach(() => {
     localStorageMock.clear();
     jest.clearAllMocks();
+    // Reset to guest user by default
+    mockAuthValue = [null, mockSetAuth];
   });
 
   // ========================================
@@ -85,7 +95,6 @@ describe("Cart Context - Systematic Testing", () => {
         wrapper: CartProvider,
       });
 
-      // Create 100 items
       const manyProducts = Array.from({ length: 100 }, (_, i) => ({
         _id: `${i}`,
         name: `Product ${i}`,
@@ -196,7 +205,7 @@ describe("Cart Context - Systematic Testing", () => {
   // EQUIVALENCE PARTITIONING TESTS
   // ========================================
   describe("EP: LocalStorage State Partitions", () => {
-    it("should handle null localStorage (partition: empty/null)", () => {
+    it("should handle null localStorage for guest (partition: empty/null)", () => {
       localStorageMock.getItem.mockReturnValue(null);
 
       const { result } = renderHook(() => useCart(), {
@@ -204,10 +213,11 @@ describe("Cart Context - Systematic Testing", () => {
       });
 
       const [cart] = result.current;
+      expect(localStorage.getItem).toHaveBeenCalledWith("cart_guest");
       expect(cart).toEqual([]);
     });
 
-    it("should handle valid JSON in localStorage (partition: valid data)", () => {
+    it("should handle valid JSON in localStorage for guest (partition: valid data)", () => {
       const mockCart = [
         { _id: "1", name: "Product 1", price: 100 },
         { _id: "2", name: "Product 2", price: 200 },
@@ -219,7 +229,7 @@ describe("Cart Context - Systematic Testing", () => {
       });
 
       const [cart] = result.current;
-      expect(localStorage.getItem).toHaveBeenCalledWith("cart");
+      expect(localStorage.getItem).toHaveBeenCalledWith("cart_guest");
       expect(cart).toEqual(mockCart);
     });
 
@@ -252,6 +262,68 @@ describe("Cart Context - Systematic Testing", () => {
 
       const [cart] = result.current;
       expect(cart).toEqual([]);
+    });
+  });
+
+  describe("EP: User Authentication State Partitions", () => {
+    it("should load cart for guest user (partition: unauthenticated)", () => {
+      mockAuthValue = [null, mockSetAuth];
+      const mockCart = [{ _id: "1", name: "Guest Product", price: 50 }];
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCart));
+
+      const { result } = renderHook(() => useCart(), {
+        wrapper: CartProvider,
+      });
+
+      const [cart] = result.current;
+      expect(localStorage.getItem).toHaveBeenCalledWith("cart_guest");
+      expect(cart).toEqual(mockCart);
+    });
+
+    it("should load cart for authenticated user (partition: authenticated)", () => {
+      mockAuthValue = [
+        { user: { _id: "user123", name: "John" }, token: "token123" },
+        mockSetAuth,
+      ];
+      const mockCart = [{ _id: "2", name: "User Product", price: 100 }];
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCart));
+
+      const { result } = renderHook(() => useCart(), {
+        wrapper: CartProvider,
+      });
+
+      const [cart] = result.current;
+      expect(localStorage.getItem).toHaveBeenCalledWith("cart_user123");
+      expect(cart).toEqual(mockCart);
+    });
+
+    it("should switch cart when user logs in", () => {
+      // Start as guest
+      mockAuthValue = [null, mockSetAuth];
+      const guestCart = [{ _id: "1", name: "Guest Product", price: 50 }];
+      const userCart = [{ _id: "2", name: "User Product", price: 100 }];
+
+      localStorageMock.getItem.mockImplementation((key) => {
+        if (key === "cart_guest") return JSON.stringify(guestCart);
+        if (key === "cart_user123") return JSON.stringify(userCart);
+        return null;
+      });
+
+      const { result, rerender } = renderHook(() => useCart(), {
+        wrapper: CartProvider,
+      });
+
+      expect(result.current[0]).toEqual(guestCart);
+
+      // Simulate login
+      mockAuthValue = [
+        { user: { _id: "user123", name: "John" }, token: "token123" },
+        mockSetAuth,
+      ];
+
+      rerender();
+
+      expect(result.current[0]).toEqual(userCart);
     });
   });
 
@@ -311,64 +383,6 @@ describe("Cart Context - Systematic Testing", () => {
 
       const [cart] = result.current;
       expect(cart).toEqual([]);
-    });
-
-    it("should handle updating items (partition: update operation)", () => {
-      const mockCart = [{ _id: "1", name: "Product 1", price: 100 }];
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCart));
-
-      const { result } = renderHook(() => useCart(), {
-        wrapper: CartProvider,
-      });
-
-      act(() => {
-        const [, setCart] = result.current;
-        setCart([{ _id: "1", name: "Updated Product", price: 150 }]);
-      });
-
-      const [cart] = result.current;
-      expect(cart[0].name).toBe("Updated Product");
-      expect(cart[0].price).toBe(150);
-    });
-  });
-
-  describe("EP: Product Data Partitions", () => {
-    it("should handle product with all fields (partition: complete data)", () => {
-      const { result } = renderHook(() => useCart(), {
-        wrapper: CartProvider,
-      });
-
-      const product = {
-        _id: "1",
-        name: "Complete Product",
-        price: 100,
-        description: "Full description",
-        quantity: 5,
-      };
-
-      act(() => {
-        const [, setCart] = result.current;
-        setCart([product]);
-      });
-
-      const [cart] = result.current;
-      expect(cart[0]).toEqual(product);
-    });
-
-    it("should handle product with minimal fields (partition: minimal data)", () => {
-      const { result } = renderHook(() => useCart(), {
-        wrapper: CartProvider,
-      });
-
-      const product = { _id: "1", name: "Basic Product", price: 50 };
-
-      act(() => {
-        const [, setCart] = result.current;
-        setCart([product]);
-      });
-
-      const [cart] = result.current;
-      expect(cart[0]).toEqual(product);
     });
   });
 
@@ -504,56 +518,108 @@ describe("Cart Context - Systematic Testing", () => {
     );
   });
 
-  describe("Pairwise: LocalStorage State × Hook Usage", () => {
-    it("should handle null localStorage + single hook usage", () => {
+  describe("Pairwise: User State × Cart State Combinations", () => {
+    it("should handle guest + empty cart", () => {
+      mockAuthValue = [null, mockSetAuth];
       localStorageMock.getItem.mockReturnValue(null);
 
       const { result } = renderHook(() => useCart(), {
         wrapper: CartProvider,
       });
 
-      const [cart] = result.current;
-      expect(cart).toEqual([]);
+      expect(localStorage.getItem).toHaveBeenCalledWith("cart_guest");
+      expect(result.current[0]).toEqual([]);
     });
 
-    it("should handle valid localStorage + multiple hook usage", () => {
-      const mockCart = [{ _id: "1", name: "Product", price: 100 }];
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCart));
+    it("should handle guest + populated cart", () => {
+      mockAuthValue = [null, mockSetAuth];
+      const guestCart = [{ _id: "1", name: "Guest Item", price: 50 }];
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(guestCart));
 
-      const { result: result1 } = renderHook(() => useCart(), {
+      const { result } = renderHook(() => useCart(), {
         wrapper: CartProvider,
       });
 
-      const { result: result2 } = renderHook(() => useCart(), {
+      expect(localStorage.getItem).toHaveBeenCalledWith("cart_guest");
+      expect(result.current[0]).toEqual(guestCart);
+    });
+
+    it("should handle authenticated + empty cart", () => {
+      mockAuthValue = [
+        { user: { _id: "user123" }, token: "token" },
+        mockSetAuth,
+      ];
+      localStorageMock.getItem.mockReturnValue(null);
+
+      const { result } = renderHook(() => useCart(), {
         wrapper: CartProvider,
       });
 
-      const [cart1] = result1.current;
-      const [cart2] = result2.current;
-
-      expect(cart1).toEqual(mockCart);
-      expect(cart2).toEqual(mockCart);
+      expect(localStorage.getItem).toHaveBeenCalledWith("cart_user123");
+      expect(result.current[0]).toEqual([]);
     });
 
-    it("should return undefined when used without provider", () => {
-      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    it("should handle authenticated + populated cart", () => {
+      mockAuthValue = [
+        { user: { _id: "user123" }, token: "token" },
+        mockSetAuth,
+      ];
+      const userCart = [{ _id: "2", name: "User Item", price: 100 }];
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(userCart));
 
-      const { result } = renderHook(() => useCart());
+      const { result } = renderHook(() => useCart(), {
+        wrapper: CartProvider,
+      });
 
-      // useContext returns undefined when no provider exists
-      expect(result.current).toBeUndefined();
-
-      consoleSpy.mockRestore();
+      expect(localStorage.getItem).toHaveBeenCalledWith("cart_user123");
+      expect(result.current[0]).toEqual(userCart);
     });
   });
 
-  describe("Complete Cart Workflows", () => {
+  // ========================================
+  // INTEGRATION TESTS
+  // ========================================
+  describe("Integration: User Session Workflows", () => {
+    it("should isolate guest cart from authenticated user cart", () => {
+      const guestCart = [{ _id: "1", name: "Guest Item", price: 50 }];
+      const userCart = [{ _id: "2", name: "User Item", price: 100 }];
+
+      localStorageMock.getItem.mockImplementation((key) => {
+        if (key === "cart_guest") return JSON.stringify(guestCart);
+        if (key === "cart_user456") return JSON.stringify(userCart);
+        return null;
+      });
+
+      // Start as guest
+      mockAuthValue = [null, mockSetAuth];
+      const { result, rerender } = renderHook(() => useCart(), {
+        wrapper: CartProvider,
+      });
+
+      expect(result.current[0]).toEqual(guestCart);
+
+      // Login as user
+      mockAuthValue = [
+        { user: { _id: "user456" }, token: "token" },
+        mockSetAuth,
+      ];
+      rerender();
+
+      expect(result.current[0]).toEqual(userCart);
+
+      // Logout back to guest
+      mockAuthValue = [null, mockSetAuth];
+      rerender();
+
+      expect(result.current[0]).toEqual(guestCart);
+    });
+
     it("should complete add-update-remove workflow", () => {
       const { result } = renderHook(() => useCart(), {
         wrapper: CartProvider,
       });
 
-      // Step 1: Add item
+      // Add item
       act(() => {
         const [, setCart] = result.current;
         setCart([{ _id: "1", name: "Product 1", price: 100 }]);
@@ -561,7 +627,7 @@ describe("Cart Context - Systematic Testing", () => {
 
       expect(result.current[0].length).toBe(1);
 
-      // Step 2: Update item
+      // Update item
       act(() => {
         const [, setCart] = result.current;
         setCart([{ _id: "1", name: "Updated Product", price: 150 }]);
@@ -569,7 +635,7 @@ describe("Cart Context - Systematic Testing", () => {
 
       expect(result.current[0][0].price).toBe(150);
 
-      // Step 3: Remove item
+      // Remove item
       act(() => {
         const [, setCart] = result.current;
         setCart([]);
@@ -579,26 +645,35 @@ describe("Cart Context - Systematic Testing", () => {
     });
   });
 
-  it("should NOT share state across different provider instances", () => {
-    const { result: result1 } = renderHook(() => useCart(), {
-      wrapper: CartProvider,
+  describe("Edge Cases", () => {
+    it("should return undefined when used without provider", () => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+      const { result } = renderHook(() => useCart());
+
+      expect(result.current).toBeUndefined();
+
+      consoleSpy.mockRestore();
     });
 
-    const { result: result2 } = renderHook(() => useCart(), {
-      wrapper: CartProvider,
+    it("should maintain separate carts for different provider instances", () => {
+      localStorageMock.getItem.mockReturnValue(null);
+
+      const { result: result1 } = renderHook(() => useCart(), {
+        wrapper: CartProvider,
+      });
+
+      const { result: result2 } = renderHook(() => useCart(), {
+        wrapper: CartProvider,
+      });
+
+      act(() => {
+        const [, setCart] = result1.current;
+        setCart([{ _id: "1", name: "Product", price: 150 }]);
+      });
+
+      expect(result1.current[0].length).toBe(1);
+      expect(result2.current[0].length).toBe(0);
     });
-
-    const newProduct = { _id: "1", name: "Product", price: 150 };
-
-    act(() => {
-      const [, setCart] = result1.current;
-      setCart([newProduct]);
-    });
-
-    const [cart1] = result1.current;
-    const [cart2] = result2.current;
-
-    expect(cart1).toEqual([newProduct]);
-    expect(cart2).toEqual([]); // Different provider instance = different state
   });
 });

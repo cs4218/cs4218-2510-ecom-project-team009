@@ -15,6 +15,7 @@ const CartPage = () => {
   const [clientToken, setClientToken] = useState("");
   const [instance, setInstance] = useState("");
   const [loading, setLoading] = useState(false);
+  const userId = auth?.user?._id || "guest";
   const navigate = useNavigate();
 
   //total price
@@ -39,7 +40,7 @@ const CartPage = () => {
       let index = myCart.findIndex((item) => item._id === pid);
       myCart.splice(index, 1);
       setCart(myCart);
-      localStorage.setItem("cart", JSON.stringify(myCart));
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(cart));
     } catch (error) {
       console.log(error);
     }
