@@ -97,6 +97,103 @@ describe("Register Component", () => {
     console.log.mockRestore();
   });
 
+  describe("Rendering", () => {
+    it("renders register form with all elements", () => {
+      renderRegister();
+
+      expect(screen.getByText("REGISTER FORM")).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("Enter your name")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("Enter your email")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("Enter your password")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("Enter your phone")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("Enter your address")
+      ).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Enter your DOB")).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("What is your favorite sport")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /register/i })
+      ).toBeInTheDocument();
+    });
+
+    it("inputs should be initially empty", () => {
+      renderRegister();
+
+      expect(screen.getByPlaceholderText("Enter your name").value).toBe("");
+      expect(screen.getByPlaceholderText("Enter your email").value).toBe("");
+      expect(screen.getByPlaceholderText("Enter your password").value).toBe("");
+      expect(screen.getByPlaceholderText("Enter your phone").value).toBe("");
+      expect(screen.getByPlaceholderText("Enter your address").value).toBe("");
+      expect(screen.getByPlaceholderText("Enter your DOB").value).toBe("");
+      expect(
+        screen.getByPlaceholderText("What is your favorite sport").value
+      ).toBe("");
+    });
+  });
+
+  describe("User Input", () => {
+    it("should allow typing in all input fields", () => {
+      renderRegister();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your name"), {
+        target: { value: "John Doe" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("Enter your email"), {
+        target: { value: "john@example.com" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("Enter your password"), {
+        target: { value: "password123" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("Enter your phone"), {
+        target: { value: "1234567890" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("Enter your address"), {
+        target: { value: "123 Main St" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("Enter your DOB"), {
+        target: { value: "2000-01-01" },
+      });
+      fireEvent.change(
+        screen.getByPlaceholderText("What is your favorite sport"),
+        {
+          target: { value: "Soccer" },
+        }
+      );
+
+      expect(screen.getByPlaceholderText("Enter your name").value).toBe(
+        "John Doe"
+      );
+      expect(screen.getByPlaceholderText("Enter your email").value).toBe(
+        "john@example.com"
+      );
+      expect(screen.getByPlaceholderText("Enter your password").value).toBe(
+        "password123"
+      );
+      expect(screen.getByPlaceholderText("Enter your phone").value).toBe(
+        "1234567890"
+      );
+      expect(screen.getByPlaceholderText("Enter your address").value).toBe(
+        "123 Main St"
+      );
+      expect(screen.getByPlaceholderText("Enter your DOB").value).toBe(
+        "2000-01-01"
+      );
+      expect(
+        screen.getByPlaceholderText("What is your favorite sport").value
+      ).toBe("Soccer");
+    });
+  });
+
   describe("Successful Registration", () => {
     it("registers user and navigates to login on success", async () => {
       axios.post.mockResolvedValueOnce({ data: { success: true } });
@@ -368,22 +465,22 @@ describe("Register Component", () => {
     });
   });
 
-  // describe("Error Clearing", () => {
-  //   it("clears error when user starts typing in name field", async () => {
-  //     renderRegister();
+  describe("Error Clearing", () => {
+    it("clears error when user starts typing in name field", async () => {
+      renderRegister();
 
-  //     const submitButton = screen.getByRole("button", { name: /register/i });
-  //     // eslint-disable-next-line testing-library/no-node-access
-  //     submitButton.closest("form").noValidate = true;
-  //     fireEvent.click(submitButton);
+      const submitButton = screen.getByRole("button", { name: /register/i });
+      // eslint-disable-next-line testing-library/no-node-access
+      submitButton.closest("form").noValidate = true;
+      fireEvent.click(submitButton);
 
-  //     await screen.findByText("Name is required");
+      await screen.findByText("Name is required");
 
-  //     fireEvent.change(screen.getByPlaceholderText("Enter your name"), {
-  //       target: { value: "J" },
-  //     });
+      fireEvent.change(screen.getByPlaceholderText("Enter your name"), {
+        target: { value: "J" },
+      });
 
-  //     expect(screen.queryByText("Name is required")).not.toBeInTheDocument();
-  //   });
-  // });
+      expect(screen.queryByText("Name is required")).not.toBeInTheDocument();
+    });
+  });
 });
