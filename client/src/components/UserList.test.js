@@ -25,7 +25,7 @@ const mockUsers = [
 ];
 
 beforeEach(() => {
-  jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => { });
 });
 
 describe("UserList Component", () => {
@@ -56,6 +56,38 @@ describe("UserList Component", () => {
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith("Unable to get users due to network error");
             expect(queryByText("Loading...")).toBeFalsy();
+        });
+    });
+    it("does not display any users if API fails", async () => {
+        axios.get.mockResolvedValueOnce({
+            data: { success: false, users: mockUsers },
+        });
+        const { queryByText } = render(<UserList />);
+        await waitFor(() => {
+            expect(queryByText("Alice")).not.toBeInTheDocument();
+            expect(queryByText("Bob")).not.toBeInTheDocument();
+        });
+    });
+
+    it("renders stringified address if address is not a string", async () => {
+        axios.get.mockResolvedValueOnce({
+            data: {
+                success: true,
+                users: [
+                    {
+                        _id: "3",
+                        name: "Charlie",
+                        email: "charlie@example.com",
+                        phone: "12345678",
+                        address: { street: "Orchard", city: "Singapore" },
+                    }
+                ]
+            },
+        });
+        const { getByText } = render(<UserList />);
+        await waitFor(() => {
+            // The address cell should contain the stringified object
+            expect(getByText(JSON.stringify({ street: "Orchard", city: "Singapore" }))).toBeInTheDocument();
         });
     });
 });
