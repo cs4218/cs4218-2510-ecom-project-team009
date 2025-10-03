@@ -88,7 +88,7 @@ describe("Login Component", () => {
 
       expect(screen.getByText("LOGIN FORM")).toBeInTheDocument();
       expect(
-        screen.getByPlaceholderText(/Enter Your Email/i)
+        screen.getByPlaceholderText(/Enter your email/i)
       ).toBeInTheDocument();
       expect(
         screen.getByPlaceholderText("Enter your password")
@@ -96,7 +96,9 @@ describe("Login Component", () => {
       expect(
         screen.getByRole("button", { name: /login/i })
       ).toBeInTheDocument();
-      expect(screen.getByText("Forgot Password")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /forgot password/i })
+      ).toBeInTheDocument();
     });
 
     it("inputs should be initially empty", () => {
@@ -111,14 +113,14 @@ describe("Login Component", () => {
     it("should allow typing email and password", () => {
       renderLogin();
 
-      fireEvent.change(screen.getByPlaceholderText(/Enter Your Email/i), {
+      fireEvent.change(screen.getByPlaceholderText(/Enter your email/i), {
         target: { value: "test@example.com" },
       });
       fireEvent.change(screen.getByPlaceholderText("Enter your password"), {
         target: { value: "password123" },
       });
 
-      expect(screen.getByPlaceholderText(/Enter Your Email/i).value).toBe(
+      expect(screen.getByPlaceholderText(/Enter your email/i).value).toBe(
         "test@example.com"
       );
       expect(screen.getByPlaceholderText("Enter your password").value).toBe(
@@ -225,6 +227,7 @@ describe("Login Component", () => {
 
       await screen.findByText("Email is required");
       expect(axios.post).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it("shows error when email is invalid", async () => {
@@ -241,6 +244,7 @@ describe("Login Component", () => {
 
       await screen.findByText("Enter a valid email address");
       expect(axios.post).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it("shows error when email is missing @ symbol", async () => {
@@ -257,6 +261,7 @@ describe("Login Component", () => {
 
       await screen.findByText("Enter a valid email address");
       expect(axios.post).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it("trims whitespace from email", async () => {
@@ -273,6 +278,7 @@ describe("Login Component", () => {
 
       await screen.findByText("Email is required");
       expect(axios.post).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -290,6 +296,7 @@ describe("Login Component", () => {
 
       await screen.findByText("Password is required");
       expect(axios.post).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

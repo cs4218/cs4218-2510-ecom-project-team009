@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1759421326072" clover="3.2.0">
-  <project timestamp="1759421326072" name="All files">
-    <metrics statements="403" coveredstatements="137" conditionals="123" coveredconditionals="69" methods="96" coveredmethods="23" elements="622" coveredelements="229" complexity="0" loc="403" ncloc="403" packages="6" files="23" classes="23"/>
+<coverage generated="1759502277273" clover="3.2.0">
+  <project timestamp="1759502277273" name="All files">
+    <metrics statements="452" coveredstatements="177" conditionals="151" coveredconditionals="91" methods="103" coveredmethods="28" elements="706" coveredelements="296" complexity="0" loc="452" ncloc="452" packages="6" files="25" classes="25"/>
     <package name="components">
       <metrics statements="30" coveredstatements="13" conditionals="7" coveredconditionals="1" methods="12" coveredmethods="4"/>
       <file name="AdminMenu.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/components/AdminMenu.js">
@@ -11,27 +11,27 @@
       </file>
       <file name="Footer.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/components/Footer.js">
         <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="4" count="2" type="stmt"/>
-        <line num="5" count="213" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="5" count="290" type="stmt"/>
       </file>
       <file name="Header.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/components/Header.js">
         <metrics statements="10" coveredstatements="6" conditionals="4" coveredconditionals="1" methods="3" coveredmethods="1"/>
-        <line num="10" count="2" type="stmt"/>
-        <line num="11" count="213" type="stmt"/>
-        <line num="12" count="213" type="stmt"/>
-        <line num="13" count="213" type="stmt"/>
-        <line num="14" count="213" type="stmt"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="11" count="290" type="stmt"/>
+        <line num="12" count="290" type="stmt"/>
+        <line num="13" count="290" type="stmt"/>
+        <line num="14" count="290" type="stmt"/>
         <line num="15" count="0" type="stmt"/>
         <line num="20" count="0" type="stmt"/>
         <line num="21" count="0" type="stmt"/>
-        <line num="23" count="213" type="stmt"/>
+        <line num="23" count="290" type="stmt"/>
         <line num="64" count="0" type="stmt"/>
       </file>
       <file name="Layout.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/components/Layout.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="8" count="2" type="stmt"/>
-        <line num="9" count="213" type="stmt"/>
-        <line num="28" count="2" type="stmt"/>
+        <line num="8" count="3" type="stmt"/>
+        <line num="9" count="290" type="stmt"/>
+        <line num="28" count="3" type="stmt"/>
       </file>
       <file name="Prices.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/components/Prices.js">
         <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
@@ -66,22 +66,22 @@
       </file>
       <file name="SearchInput.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/components/Form/SearchInput.js">
         <metrics statements="12" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="1"/>
-        <line num="5" count="2" type="stmt"/>
-        <line num="6" count="213" type="stmt"/>
-        <line num="7" count="213" type="stmt"/>
-        <line num="9" count="213" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="6" count="290" type="stmt"/>
+        <line num="7" count="290" type="stmt"/>
+        <line num="9" count="290" type="stmt"/>
         <line num="10" count="0" type="stmt"/>
         <line num="11" count="0" type="stmt"/>
         <line num="12" count="0" type="stmt"/>
         <line num="15" count="0" type="stmt"/>
         <line num="16" count="0" type="stmt"/>
         <line num="18" count="0" type="stmt"/>
-        <line num="21" count="213" type="stmt"/>
+        <line num="21" count="290" type="stmt"/>
         <line num="30" count="0" type="stmt"/>
       </file>
     </package>
     <package name="components.Routes">
-      <metrics statements="20" coveredstatements="0" conditionals="12" coveredconditionals="0" methods="6" coveredmethods="0"/>
+      <metrics statements="29" coveredstatements="0" conditionals="18" coveredconditionals="0" methods="8" coveredmethods="0"/>
       <file name="AdminRoute.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/components/Routes/AdminRoute.js">
         <metrics statements="10" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="3" coveredmethods="0"/>
         <line num="9" count="0" type="stmt"/>
@@ -107,6 +107,18 @@
         <line num="18" count="0" type="stmt"/>
         <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="24" count="0" type="cond" truecount="0" falsecount="2"/>
+      </file>
+      <file name="Public.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/components/Routes/Public.js">
+        <metrics statements="9" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="13" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
       </file>
     </package>
     <package name="context">
@@ -146,7 +158,50 @@
       </file>
     </package>
     <package name="pages.Auth">
-      <metrics statements="105" coveredstatements="105" conditionals="66" coveredconditionals="66" methods="14" coveredmethods="14"/>
+      <metrics statements="145" coveredstatements="145" conditionals="88" coveredconditionals="88" methods="19" coveredmethods="19"/>
+      <file name="ForgotPassword.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/pages/Auth/ForgotPassword.js">
+        <metrics statements="40" coveredstatements="40" conditionals="22" coveredconditionals="22" methods="5" coveredmethods="5"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="9" count="77" type="stmt"/>
+        <line num="10" count="77" type="stmt"/>
+        <line num="11" count="77" type="stmt"/>
+        <line num="12" count="77" type="stmt"/>
+        <line num="13" count="77" type="stmt"/>
+        <line num="16" count="77" type="stmt"/>
+        <line num="17" count="14" type="stmt"/>
+        <line num="20" count="14" type="stmt"/>
+        <line num="22" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="23" count="3" type="stmt"/>
+        <line num="25" count="11" type="stmt"/>
+        <line num="26" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="31" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="32" count="4" type="stmt"/>
+        <line num="34" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="39" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="40" count="4" type="stmt"/>
+        <line num="42" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="47" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="48" count="10" type="stmt"/>
+        <line num="49" count="10" type="stmt"/>
+        <line num="52" count="4" type="stmt"/>
+        <line num="54" count="4" type="stmt"/>
+        <line num="55" count="4" type="stmt"/>
+        <line num="60" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="61" count="1" type="stmt"/>
+        <line num="62" count="1" type="stmt"/>
+        <line num="64" count="1" type="stmt"/>
+        <line num="67" count="2" type="stmt"/>
+        <line num="71" count="77" type="stmt"/>
+        <line num="81" count="17" type="stmt"/>
+        <line num="82" count="17" type="stmt"/>
+        <line num="98" count="14" type="stmt"/>
+        <line num="99" count="14" type="stmt"/>
+        <line num="115" count="15" type="stmt"/>
+        <line num="116" count="15" type="stmt"/>
+      </file>
       <file name="Login.js" path="/Users/jmsandiego/Documents/Projects/cs4218/cs4218-2510-ecom-project-team009/client/src/pages/Auth/Login.js">
         <metrics statements="38" coveredstatements="38" conditionals="22" coveredconditionals="22" methods="5" coveredmethods="5"/>
         <line num="12" count="1" type="stmt"/>
