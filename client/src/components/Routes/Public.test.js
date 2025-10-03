@@ -7,13 +7,17 @@ import { useAuth } from "../../context/auth";
 
 jest.mock("../../context/auth");
 
+jest.mock("../Spinner", () => () => (
+  <div data-testid="spinner">Loading...</div>
+));
+
 describe("PublicRoute Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe("Unauthenticated User", () => {
-    it("allows access to login page when user is not authenticated", () => {
+    it("allows access to login page when user is not authenticated", async () => {
       useAuth.mockReturnValue([{ user: null, token: "" }]);
 
       render(
@@ -26,7 +30,10 @@ describe("PublicRoute Component", () => {
         </MemoryRouter>
       );
 
-      expect(screen.getByText("Login Page")).toBeInTheDocument();
+      // Wait for useEffect to update ok=false
+      await waitFor(() => {
+        expect(screen.getByText("Login Page")).toBeInTheDocument();
+      });
     });
   });
 
