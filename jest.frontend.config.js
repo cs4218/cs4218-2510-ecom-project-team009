@@ -27,10 +27,12 @@ export default {
     "<rootDir>/client/src/components/**/*.test.js",
   ],
 
+  silent: true,
+  
   // jest code coverage
   collectCoverage: true,
   collectCoverageFrom: [
-    "client/src/pages/*/**",
+    "client/src/pages/**",
     "client/src/context/*/**",
     "client/src/hooks/*/**",
     "client/src/components/*/**",
