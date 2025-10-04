@@ -69,7 +69,7 @@ describe("AdminMenu Component", () => {
     const links = screen.getAllByRole("link");
 
     // Verify we have all 4 admin links
-    expect(links).toHaveLength(4);
+    expect(links).toHaveLength(5);
 
     // Verify each link has the correct class
     links.forEach((link) => {

@@ -73,6 +73,7 @@ const fillValidForm = () => {
 
 describe("Login Component", () => {
   beforeEach(() => {
+    jest.spyOn(console, "log").mockImplementation(() => {});
     jest.clearAllMocks();
     mockNavigate.mockReset();
     jest.spyOn(console, "log").mockImplementation(() => {});
