@@ -116,6 +116,9 @@ describe("Product Controller", () => {
     // Restore the default constructor
     productModel.mockImplementation(originalImpl);
 
+    // Reset fs.readFileSync to default behavior
+    fs.readFileSync.mockReturnValue(Buffer.from("photo-data"));
+
     // Common mock setup
     mockReq = {
       fields: {},
@@ -316,7 +319,6 @@ describe("Product Controller", () => {
         let capturedProduct;
         productModel.mockImplementation(function (doc) {
           Object.assign(this, doc);
-          // Initialize photo as an actual object (not mock), so contentType can be set
           this.photo = {
             data: null,
             contentType: null,
@@ -332,12 +334,8 @@ describe("Product Controller", () => {
         expect(slugify).toHaveBeenCalledWith("Test Product");
         expect(fs.readFileSync).toHaveBeenCalledWith("/tmp/photo.jpg");
         
-        // This verifies the line: products.photo.contentType = photo.type;
         expect(capturedProduct.photo.contentType).toBe("image/jpeg");
-        
-        // This verifies the line: products.photo.data = fs.readFileSync(photo.path);
         expect(capturedProduct.photo.data).toEqual(Buffer.from("photo-data"));
-        
         expect(mockRes.status).toHaveBeenCalledWith(201);
         expect(mockRes.send).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -440,7 +438,8 @@ describe("Product Controller", () => {
           },
         };
 
-        fs.readFileSync.mockImplementation(() => {
+        // Mock readFileSync to throw ONLY for this test
+        fs.readFileSync.mockImplementationOnce(() => {
           throw new Error("File not found");
         });
 
@@ -454,6 +453,9 @@ describe("Product Controller", () => {
           error: expect.anything(),
           message: "Error in crearing product",
         });
+        
+        // Reset mock back to default for subsequent tests
+        fs.readFileSync.mockReturnValue(Buffer.from("photo-data"));
       });
     });
   });
@@ -818,11 +820,20 @@ describe("Product Controller", () => {
       };
       mockReq.params = { pid: "p1" };
 
+      // Create product with EMPTY photo that can be mutated
       const updatedProduct = {
         _id: "p1",
         name: "Updated Product",
         slug: "updated-product",
-        photo: { data: Buffer.from("photo-data"), contentType: "image/jpeg" },
+        description: "Updated Description",
+        price: 200,
+        category: "cat-1",
+        quantity: 20,
+        shipping: true,
+        photo: {
+          data: null,  // ← Empty, will be set by controller
+          contentType: null,  // ← Empty, will be set by controller
+        },
         save: jest.fn().mockResolvedValue(true),
       };
 
@@ -830,11 +841,16 @@ describe("Product Controller", () => {
 
       await updateProductController(mockReq, mockRes);
 
+      // Verify the controller mutated the photo object
+      expect(updatedProduct.photo.data).toEqual(Buffer.from("photo-data"));
+      expect(updatedProduct.photo.contentType).toBe("image/jpeg");
+      
       expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
         "p1",
         expect.objectContaining({ slug: "updated-product" }),
         { new: true }
       );
+      expect(updatedProduct.save).toHaveBeenCalled();
       expect(mockRes.status).toHaveBeenCalledWith(201);
       expect(mockRes.send).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -964,8 +980,48 @@ describe("Product Controller", () => {
       expect(mockRes.send).toHaveBeenCalledWith({
         success: false,
         error: expect.any(Error),
-        message: "Error in Updte product",
+        message: "Error in Update product",
       });
+    });
+
+    it("should set photo contentType when updating with photo", async () => {
+      mockReq.fields = {
+        name: "Updated Product",
+        description: "Updated Description",
+        price: 200,
+        category: "cat-1",
+        quantity: 20,
+        shipping: true,
+      };
+      mockReq.files = {
+        photo: {
+          size: 500000,
+          path: "/tmp/photo.jpg",
+          type: "image/png",
+        },
+      };
+      mockReq.params = { pid: "p1" };
+
+      // Create a mutable product object with empty photo
+      const productInstance = {
+        _id: "p1",
+        name: "Updated Product",
+        slug: "updated-product",
+        photo: {
+          data: null, 
+          contentType: null, 
+        },
+        save: jest.fn().mockResolvedValue(true),
+      };
+      
+      productModel.findByIdAndUpdate.mockResolvedValue(productInstance);
+
+      await updateProductController(mockReq, mockRes);
+
+      expect(productInstance.photo.data).toEqual(Buffer.from("photo-data"));
+      expect(productInstance.photo.contentType).toBe("image/png");
+      expect(productInstance.save).toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(201);
     });
   });
 
