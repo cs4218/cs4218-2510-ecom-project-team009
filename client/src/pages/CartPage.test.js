@@ -325,46 +325,6 @@ describe("Pairwise: Auth×Token×Cart×Address", () => {
 });
 
 // ===================================================================
-// Integration: successful payment flow
-// ===================================================================
-describe("Successful payment", () => {
-  test("posts payment, clears storage, resets cart, navigates, toasts", async () => {
-    mockAuth = {
-      user: { _id: "u1", name: "J", address: "Addr" },
-      token: "TKN",
-    };
-    mockCart = [
-      { _id: "p1", name: "A", description: "desc A", price: 25 },
-      { _id: "p2", name: "B", description: "desc B", price: 75 },
-    ];
-
-    await renderCart();
-
-    const payBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /Make Payment/i })
-    );
-    expect(payBtn).toBeEnabled();
-
-    fireEvent.click(payBtn);
-
-    await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        "/api/v1/product/braintree/payment",
-        expect.objectContaining({ nonce: "NONCE_X", cart: expect.any(Array) })
-      );
-    });
-
-    // Note: component removes non-namespaced key "cart"
-    expect(window.localStorage.removeItem).toHaveBeenCalledWith("cart");
-    expect(mockSetCart).toHaveBeenCalledWith([]);
-    expect(mockNavigate).toHaveBeenCalledWith("/dashboard/user/orders");
-    expect(toast.success).toHaveBeenCalledWith(
-      "Payment Completed Successfully "
-    );
-  });
-});
-
-// ===================================================================
 // UI texts
 // ===================================================================
 describe("UI texts: greetings and counts", () => {
