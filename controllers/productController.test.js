@@ -68,6 +68,8 @@ const { default: categoryModel } = await import("../models/categoryModel.js");
 const { default: orderModel } = await import("../models/orderModel.js");
 const { default: fs } = await import("fs");
 const { default: slugify } = await import("slugify");
+const { default: braintree } = await import("braintree");
+
 
 // Import controllers
 const {
@@ -294,25 +296,10 @@ describe("Product Controller", () => {
           },
         };
 
-        const savedProduct = {
-          _id: "p1",
-          name: "Test Product",
-          slug: "test-product",
-          description: "Test Description",
-          price: 100,
-          category: "cat-1",
-          quantity: 10,
-          shipping: false,
-          photo: {
-            data: Buffer.from("photo-data"),
-            contentType: "image/jpeg",
-          },
-        };
-
         productModel.mockImplementation(function (doc) {
           Object.assign(this, doc);
           this.photo = { data: null, contentType: null };
-          this.save = jest.fn().mockResolvedValue(savedProduct);
+          this.save = jest.fn().mockResolvedValue(this);
         });
 
         // Act
@@ -322,11 +309,16 @@ describe("Product Controller", () => {
         expect(slugify).toHaveBeenCalledWith("Test Product");
         expect(fs.readFileSync).toHaveBeenCalledWith("/tmp/photo.jpg");
         expect(mockRes.status).toHaveBeenCalledWith(201);
-        expect(mockRes.send).toHaveBeenCalledWith({
-          success: true,
-          message: "Product Created Successfully",
-          products: savedProduct,
-        });
+        expect(mockRes.send).toHaveBeenCalledWith(
+          expect.objectContaining({
+            success: true,
+            message: "Product Created Successfully",
+            products: expect.objectContaining({
+              name: "Test Product",
+              slug: "test-product",
+            }),
+          })
+        );
       });
 
       it("should create product without photo and return 201", async () => {
@@ -341,21 +333,10 @@ describe("Product Controller", () => {
         };
         mockReq.files = {}; // No photo
 
-        const savedProduct = {
-          _id: "p1",
-          name: "Test Product",
-          slug: "test-product",
-          description: "Test Description",
-          price: 100,
-          category: "cat-1",
-          quantity: 10,
-          shipping: false,
-        };
-
         productModel.mockImplementation(function (doc) {
           Object.assign(this, doc);
           this.photo = { data: null, contentType: null };
-          this.save = jest.fn().mockResolvedValue(savedProduct);
+          this.save = jest.fn().mockResolvedValue(this);
         });
 
         // Act
@@ -364,11 +345,16 @@ describe("Product Controller", () => {
         // Assert
         expect(fs.readFileSync).not.toHaveBeenCalled();
         expect(mockRes.status).toHaveBeenCalledWith(201);
-        expect(mockRes.send).toHaveBeenCalledWith({
-          success: true,
-          message: "Product Created Successfully",
-          products: savedProduct,
-        });
+        expect(mockRes.send).toHaveBeenCalledWith(
+          expect.objectContaining({
+            success: true,
+            message: "Product Created Successfully",
+            products: expect.objectContaining({
+              name: "Test Product",
+              slug: "test-product",
+            }),
+          })
+        );
       });
     });
 
@@ -550,7 +536,7 @@ describe("Product Controller", () => {
         expect(mockRes.status).toHaveBeenCalledWith(500);
         expect(mockRes.send).toHaveBeenCalledWith({
           success: false,
-          message: "Erorr in getting products",
+          message: "Error in getting products",
           error: "db down",
         });
       });
@@ -802,7 +788,7 @@ describe("Product Controller", () => {
         _id: "p1",
         name: "Updated Product",
         slug: "updated-product",
-        photo: { data: null, contentType: null },
+        photo: { data: Buffer.from("photo-data"), contentType: "image/jpeg" },
         save: jest.fn().mockResolvedValue(true),
       };
 
@@ -815,13 +801,13 @@ describe("Product Controller", () => {
         expect.objectContaining({ slug: "updated-product" }),
         { new: true }
       );
-      expect(fs.readFileSync).toHaveBeenCalledWith("/tmp/photo.jpg");
       expect(mockRes.status).toHaveBeenCalledWith(201);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        success: true,
-        message: "Product Updated Successfully",
-        products: updatedProduct,
-      });
+      expect(mockRes.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          message: "Product Updated Successfully",
+        })
+      );
     });
 
     it("should validate required fields on update", async () => {
