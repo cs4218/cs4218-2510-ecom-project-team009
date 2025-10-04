@@ -40,7 +40,7 @@ const CartPage = () => {
       let index = myCart.findIndex((item) => item._id === pid);
       myCart.splice(index, 1);
       setCart(myCart);
-      localStorage.setItem(`cart_${userId}`, JSON.stringify(cart));
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(myCart));
     } catch (error) {
       console.log(error);
     }
@@ -163,7 +163,7 @@ const CartPage = () => {
                         })
                       }
                     >
-                      Plase Login to checkout
+                      Please Login to checkout
                     </button>
                   )}
                 </div>
