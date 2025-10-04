@@ -12,6 +12,8 @@ export default {
     "<rootDir>/helpers/*.test.js",
   ],
 
+  silent: true,
+
   // jest code coverage
   collectCoverage: true,
   collectCoverageFrom: ["controllers/**", "middlewares/**", "helpers/**"],
