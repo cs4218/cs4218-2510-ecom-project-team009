@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor, screen } from "@testing-library/react";
+import { render, fireEvent, waitFor, screen, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import axios from "axios";
 import ProductDetails from "./ProductDetails";
@@ -108,11 +108,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("No Similar Products found")).toBeInTheDocument();
@@ -130,11 +132,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("Mouse")).toBeInTheDocument();
@@ -145,11 +149,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
     });
 
     it("should display multiple related products (boundary: normal case)", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("Mouse")).toBeInTheDocument();
@@ -163,18 +169,17 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
 
   describe("BVA: Description Truncation", () => {
     it("should truncate description at 60 characters for related products", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText("Wireless mouse with ergonomic design and long battery life")).toBeInTheDocument();
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
       });
 
-      // Check truncation (60 chars + "...")
-      expect(screen.getByText(/Wireless mouse with ergonomic design and long battery life/)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Wireless mouse with ergonomic design and long battery life/)).toBeInTheDocument();
+      });
     });
 
     it("should handle description shorter than 60 characters", async () => {
@@ -193,11 +198,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("Short description...")).toBeInTheDocument();
@@ -220,11 +227,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(`${"a".repeat(60)}...`)).toBeInTheDocument();
@@ -245,11 +254,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Price :\$0\.00/)).toBeInTheDocument();
@@ -268,11 +279,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Price :\$999,999\.99/)).toBeInTheDocument();
@@ -285,11 +298,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
   // ========================================
   describe("EP: Product Data States", () => {
     it("should handle product with all valid fields (valid partition)", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Name : Laptop/)).toBeInTheDocument();
@@ -322,11 +337,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Name : Laptop/)).toBeInTheDocument();
@@ -338,11 +355,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
     it("should fetch product when slug is valid (valid partition)", async () => {
       useParams.mockReturnValue({ slug: "laptop" });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(axios.get).toHaveBeenCalledWith("/api/v1/product/get-product/laptop");
@@ -352,40 +371,52 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
     it("should not fetch when slug is undefined (invalid partition)", async () => {
       useParams.mockReturnValue({ slug: undefined });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       // Wait a bit to ensure no call is made
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
       expect(axios.get).not.toHaveBeenCalled();
     });
 
     it("should not fetch when slug is null (invalid partition)", async () => {
       useParams.mockReturnValue({ slug: null });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
       expect(axios.get).not.toHaveBeenCalled();
     });
 
     it("should not fetch when slug is empty string (invalid partition)", async () => {
       useParams.mockReturnValue({ slug: "" });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
       expect(axios.get).not.toHaveBeenCalled();
     });
   });
@@ -443,11 +474,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
           return Promise.reject(new Error("Not found"));
         });
 
-        render(
-          <MemoryRouter>
-            <ProductDetails />
-          </MemoryRouter>
-        );
+        await act(async () => {
+          render(
+            <MemoryRouter>
+              <ProductDetails />
+            </MemoryRouter>
+          );
+        });
 
         await waitFor(() => {
           if (expectedProduct) {
@@ -475,11 +508,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
@@ -503,11 +538,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
@@ -522,45 +559,55 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
   // ========================================
   describe("User Interactions", () => {
     it("should navigate to related product when More Details is clicked", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("Mouse")).toBeInTheDocument();
       });
 
-      const moreDetailsButtons = screen.getAllByText("More Details");
-      fireEvent.click(moreDetailsButtons[0]);
+      await act(async () => {
+        const moreDetailsButtons = screen.getAllByText("More Details");
+        fireEvent.click(moreDetailsButtons[0]);
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith("/product/mouse");
     });
 
     it("should navigate to second related product when its More Details is clicked", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("Keyboard")).toBeInTheDocument();
       });
 
-      const moreDetailsButtons = screen.getAllByText("More Details");
-      fireEvent.click(moreDetailsButtons[1]);
+      await act(async () => {
+        const moreDetailsButtons = screen.getAllByText("More Details");
+        fireEvent.click(moreDetailsButtons[1]);
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith("/product/keyboard");
     });
 
     it("should render ADD TO CART button", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("ADD TO CART")).toBeInTheDocument();
@@ -573,11 +620,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
   // ========================================
   describe("Component Rendering", () => {
     it("should render product image with correct attributes", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         const productImage = screen.getAllByRole("img")[0];
@@ -590,11 +639,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
     });
 
     it("should render related product images with correct attributes", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         const images = screen.getAllByRole("img");
@@ -607,11 +658,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
     });
 
     it("should render 'Similar Products' heading", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Similar Products/)).toBeInTheDocument();
@@ -624,11 +677,16 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
   // ========================================
   describe("useEffect Dependency Changes", () => {
     it("should refetch product when slug changes", async () => {
-      const { rerender } = render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      let rerender;
+      
+      await act(async () => {
+        const result = render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+        rerender = result.rerender;
+      });
 
       await waitFor(() => {
         expect(axios.get).toHaveBeenCalledWith("/api/v1/product/get-product/laptop");
@@ -648,11 +706,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      rerender(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        rerender(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(axios.get).toHaveBeenCalledWith("/api/v1/product/get-product/mouse");
@@ -665,11 +725,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
   // ========================================
   describe("Price Formatting", () => {
     it("should format related product prices correctly", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("$29.99")).toBeInTheDocument();
@@ -693,11 +755,13 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("$19.50")).toBeInTheDocument();
@@ -767,11 +831,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Name : Laptop/)).toBeInTheDocument();
@@ -787,11 +853,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Name : Laptop/)).toBeInTheDocument();
@@ -810,11 +878,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("Mouse")).toBeInTheDocument();
@@ -840,11 +910,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
           })
       );
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(
         () => {
@@ -867,11 +939,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Name : Laptop/)).toBeInTheDocument();
@@ -900,11 +974,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(`${desc59}...`)).toBeInTheDocument();
@@ -925,11 +1001,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(`${"a".repeat(60)}...`)).toBeInTheDocument();
@@ -950,11 +1028,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(`${"a".repeat(60)}...`)).toBeInTheDocument();
@@ -978,11 +1058,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(`${specialDesc}...`)).toBeInTheDocument();
@@ -1011,11 +1093,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         const moreDetailsButtons = screen.getAllByText("More Details");
@@ -1042,11 +1126,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         const moreDetailsButtons = screen.getAllByText("More Details");
@@ -1071,11 +1157,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Price :\$1\.99/)).toBeInTheDocument();
@@ -1094,11 +1182,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Price :\$100\.00/)).toBeInTheDocument();
@@ -1117,11 +1207,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Price :\$1,234\.56/)).toBeInTheDocument();
@@ -1141,11 +1233,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("$10.50")).toBeInTheDocument();
@@ -1174,35 +1268,43 @@ describe("ProductDetails Component - Additional Coverage", () => {
         return Promise.reject(new Error("Not found"));
       });
 
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("Monitor")).toBeInTheDocument();
       });
 
-      const moreDetailsButtons = screen.getAllByText("More Details");
-      fireEvent.click(moreDetailsButtons[2]);
+      await act(async () => {
+        const moreDetailsButtons = screen.getAllByText("More Details");
+        fireEvent.click(moreDetailsButtons[2]);
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith("/product/monitor");
     });
 
     it("should not navigate when ADD TO CART is clicked (button disabled)", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText("ADD TO CART")).toBeInTheDocument();
       });
 
-      const addToCartButton = screen.getByText("ADD TO CART");
-      fireEvent.click(addToCartButton);
+      await act(async () => {
+        const addToCartButton = screen.getByText("ADD TO CART");
+        fireEvent.click(addToCartButton);
+      });
 
       // Verify navigate was not called (button has no onClick handler in current implementation)
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -1214,11 +1316,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
   // ========================================
   describe("Image Rendering Comprehensive", () => {
     it("should render all related product images with correct src", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         const images = screen.getAllByRole("img");
@@ -1230,11 +1334,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
     });
 
     it("should render product image with correct dimensions", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         const productImage = screen.getAllByRole("img")[0];
@@ -1249,11 +1355,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
   // ========================================
   describe("Data Consistency", () => {
     it("should display correct product data after API response", async () => {
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Name : Laptop/)).toBeInTheDocument();
@@ -1264,13 +1372,13 @@ describe("ProductDetails Component - Additional Coverage", () => {
     });
 
     it("should call getSimilarProduct with correct product and category IDs", async () => {
-      const getSimilarProductSpy = jest.fn();
-
-      render(
-        <MemoryRouter>
-          <ProductDetails />
-        </MemoryRouter>
-      );
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
 
       await waitFor(() => {
         expect(axios.get).toHaveBeenCalledWith(
