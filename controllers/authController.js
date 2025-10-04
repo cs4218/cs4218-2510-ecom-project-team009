@@ -164,7 +164,7 @@ export const updateProfileController = async (req, res) => {
     //password
     if (password && password.length < 6) {
       return res
-        .status()
+        .status(422)
         .json({ error: "Password is required and 6 character long" });
     }
     const hashedPassword = password ? await hashPassword(password) : undefined;
@@ -245,6 +245,14 @@ export const orderStatusController = async (req, res) => {
       { status },
       { new: true }
     );
+
+    if (!orders) {
+      return res.status(404).send({
+        success: false,
+        message: "Order not found",
+      });
+    }
+    
     res.status(200).send({
       success: true,
       message: "Order updated successfully",
@@ -260,3 +268,4 @@ export const orderStatusController = async (req, res) => {
 };
 
 // bug diego: remove console.log(error) from all controllers
+

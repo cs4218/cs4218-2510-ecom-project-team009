@@ -2,7 +2,7 @@ import express from "express";
 import {
   registerController,
   loginController,
-  testController,
+  // testController,
   forgotPasswordController,
   updateProfileController,
   getOrdersController,
@@ -25,7 +25,7 @@ router.post("/login", loginController);
 router.post("/forgot-password", forgotPasswordController);
 
 //test routes
-router.get("/test", requireSignIn, isAdmin, testController);
+// router.get("/test", requireSignIn, isAdmin, testController);
 
 //protected User route auth
 router.get("/user-auth", requireSignIn, (req, res) => {

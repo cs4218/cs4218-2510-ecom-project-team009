@@ -1,21 +1,40 @@
-import { GetNonAdminUsersController } from "./userController.js";
-import userModel from "../models/userModel.js";
+import { jest } from "@jest/globals";
 
-jest.mock("../models/userModel.js");
+await jest.unstable_mockModule("../models/userModel.js", () => {
+  const constructor = jest.fn(function (doc) {
+    Object.assign(this, doc);
+    this.save = jest.fn();
+  });
+
+  constructor.find = jest.fn(() => {
+    return null;
+  });
+
+  return { default: constructor };
+});
+
+const { default: userModel } = await import("../models/userModel.js");
+const { GetNonAdminUsersController } = await import("./userController.js");
 
 describe("UserController", () => {
-  describe("GetNonAdminUsersController", () => {
-    let req, res;
+  let req, res;
 
-    beforeEach(() => {
-      req = {};
-      res = {
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
-      };
-      jest.clearAllMocks();
-    });
-    
+  const originalImpl = userModel.getMockImplementation();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    userModel.mockImplementation(originalImpl);
+
+    req = {};
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+      json: jest.fn(),
+    };
+  });
+
+  describe("GetNonAdminUsersController", () => {
     it("should attempt to return only non-admin users", async () => {
       const mockUsers = [
         { name: "User1", role: 0 },
