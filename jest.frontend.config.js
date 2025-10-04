@@ -25,6 +25,8 @@ export default {
     "<rootDir>/client/src/context/**/*.test.js",
     "<rootDir>/client/src/hooks/**/*.test.js",
     "<rootDir>/client/src/components/**/*.test.js",
+    "<rootDir>/client/src/components/*.test.js",
+
   ],
 
   silent: true,
@@ -35,7 +37,7 @@ export default {
     "client/src/pages/**",
     "client/src/context/*/**",
     "client/src/hooks/*/**",
-    "client/src/components/*/**",
+    "client/src/components/**",
   ],
   coverageThreshold: {
     global: {
