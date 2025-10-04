@@ -30,7 +30,7 @@ export default {
   // jest code coverage
   collectCoverage: true,
   collectCoverageFrom: [
-    "client/src/pages/*/**",
+    "client/src/pages/**",
     "client/src/context/*/**",
     "client/src/hooks/*/**",
     "client/src/components/*/**",
