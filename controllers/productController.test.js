@@ -46,21 +46,26 @@ await jest.unstable_mockModule("slugify", () => ({
   default: jest.fn((str) => str.toLowerCase().replace(/\s+/g, "-")),
 }));
 
-await jest.unstable_mockModule("braintree", () => ({
-  default: {
-    BraintreeGateway: jest.fn(function () {
-      this.clientToken = {
-        generate: jest.fn(),
-      };
-      this.transaction = {
-        sale: jest.fn(),
-      };
-    }),
-    Environment: {
-      Sandbox: "sandbox",
+await jest.unstable_mockModule("braintree", () => {
+  const mockGenerate = jest.fn();
+  const mockSale = jest.fn();
+  
+  return {
+    default: {
+      BraintreeGateway: jest.fn(function () {
+        this.clientToken = {
+          generate: mockGenerate,
+        };
+        this.transaction = {
+          sale: mockSale,
+        };
+      }),
+      Environment: {
+        Sandbox: "sandbox",
+      },
     },
-  },
-}));
+  };
+});
 
 // Import mocked dependencies
 const { default: productModel } = await import("../models/productModel.js");
@@ -70,6 +75,12 @@ const { default: fs } = await import("fs");
 const { default: slugify } = await import("slugify");
 const { default: braintree } = await import("braintree");
 
+// Helper to get the gateway instance's mocks
+const getMockGateway = () => {
+  const GatewayConstructor = braintree.BraintreeGateway;
+  const instance = GatewayConstructor.mock.results[0]?.value || new GatewayConstructor();
+  return instance;
+};
 
 // Import controllers
 const {
@@ -96,6 +107,11 @@ describe("Product Controller", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Reset gateway mocks
+    const gateway = getMockGateway();
+    gateway.clientToken.generate.mockReset();
+    gateway.transaction.sale.mockReset();
 
     // Restore the default constructor
     productModel.mockImplementation(originalImpl);
@@ -1387,6 +1403,53 @@ describe("Product Controller", () => {
       await brainTreePaymentController(mockReq, mockRes);
 
       expect(mockRes.json).toHaveBeenCalledWith({ ok: true });
+    });
+  });
+
+  // ============================================================================
+  // BRAIN TREE TOKEN CONTROLLER - COMPLETE COVERAGE
+  // ============================================================================
+  describe("Braintree Token Controller - Complete Coverage", () => {
+  
+    it("should send client token on success", async () => {
+      const mockResponse = { clientToken: "token123" };
+      const gateway = getMockGateway();
+      
+      gateway.clientToken.generate.mockImplementation((opts, callback) => {
+        callback(null, mockResponse);
+      });
+
+      await braintreeTokenController(mockReq, mockRes);
+
+      expect(mockRes.send).toHaveBeenCalledWith(mockResponse);
+    });
+
+    it("should send 500 when Braintree API returns error in callback", async () => {
+      const mockError = new Error("Braintree API error");
+      const gateway = getMockGateway();
+      
+      gateway.clientToken.generate.mockImplementation((opts, callback) => {
+        callback(mockError, null);
+      });
+
+      await braintreeTokenController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith(mockError);
+    });
+
+    it("should log error when gateway.clientToken.generate throws synchronously", async () => {
+      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+      const gateway = getMockGateway();
+      
+      gateway.clientToken.generate.mockImplementation(() => {
+        throw new Error("Gateway not initialized");
+      });
+
+      await braintreeTokenController(mockReq, mockRes);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.any(Error));
+      consoleLogSpy.mockRestore();
     });
   });
 });
