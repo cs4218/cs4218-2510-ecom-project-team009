@@ -221,7 +221,7 @@ export const getAllOrdersController = async (req, res) => {
       .find({})
       .populate("products", "-photo")
       .populate("buyer", "name")
-      .sort({ createdAt: "-1" });
+      .sort({ createdAt: -1 });
     res.status(200).send({
       success: true,
       message: "Orders fetched successfully",
@@ -253,7 +253,7 @@ export const orderStatusController = async (req, res) => {
         message: "Order not found",
       });
     }
-    
+
     res.status(200).send({
       success: true,
       message: "Order updated successfully",

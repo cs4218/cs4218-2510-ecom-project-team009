@@ -772,7 +772,7 @@ describe("Auth Controller", () => {
       expect(orderModel.find).toHaveBeenCalledWith({});
       expect(firstPopulate).toHaveBeenCalledWith("products", "-photo");
       expect(secondPopulate).toHaveBeenCalledWith("buyer", "name");
-      expect(sort).toHaveBeenCalledWith({ createdAt: "-1" });
+      expect(sort).toHaveBeenCalledWith({ createdAt: -1 });
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: true,
@@ -795,7 +795,7 @@ describe("Auth Controller", () => {
       expect(orderModel.find).toHaveBeenCalledWith({});
       expect(firstPopulate).toHaveBeenCalledWith("products", "-photo");
       expect(secondPopulate).toHaveBeenCalledWith("buyer", "name");
-      expect(sort).toHaveBeenCalledWith({ createdAt: "-1" });
+      expect(sort).toHaveBeenCalledWith({ createdAt: -1 });
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: true,
