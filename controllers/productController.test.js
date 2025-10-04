@@ -268,7 +268,7 @@ describe("Product Controller", () => {
             productModel.mockImplementation(function (doc) {
               Object.assign(this, doc);
               this.photo = { data: null, contentType: null };
-              this.save = jest.fn().mockResolvedValue({ _id: "p1", ...doc });
+              this.save = jest.fn().mockResolvedValue(this);
             });
           }
 
@@ -316,9 +316,13 @@ describe("Product Controller", () => {
         let capturedProduct;
         productModel.mockImplementation(function (doc) {
           Object.assign(this, doc);
-          this.photo = { data: null, contentType: null };
+          // Initialize photo as an actual object (not mock), so contentType can be set
+          this.photo = {
+            data: null,
+            contentType: null,
+          };
           this.save = jest.fn().mockResolvedValue(this);
-          capturedProduct = this; // Capture the instance
+          capturedProduct = this;
         });
 
         // Act
@@ -327,8 +331,13 @@ describe("Product Controller", () => {
         // Assert
         expect(slugify).toHaveBeenCalledWith("Test Product");
         expect(fs.readFileSync).toHaveBeenCalledWith("/tmp/photo.jpg");
-        expect(capturedProduct.photo.contentType).toBe("image/jpeg"); // Verify contentType was set
-        expect(capturedProduct.photo.data).toEqual(Buffer.from("photo-data")); // Verify data was set
+        
+        // This verifies the line: products.photo.contentType = photo.type;
+        expect(capturedProduct.photo.contentType).toBe("image/jpeg");
+        
+        // This verifies the line: products.photo.data = fs.readFileSync(photo.path);
+        expect(capturedProduct.photo.data).toEqual(Buffer.from("photo-data"));
+        
         expect(mockRes.status).toHaveBeenCalledWith(201);
         expect(mockRes.send).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -337,6 +346,10 @@ describe("Product Controller", () => {
             products: expect.objectContaining({
               name: "Test Product",
               slug: "test-product",
+              photo: expect.objectContaining({
+                contentType: "image/jpeg",
+                data: Buffer.from("photo-data"),
+              }),
             }),
           })
         );
@@ -831,6 +844,34 @@ describe("Product Controller", () => {
       );
     });
 
+    it("should update product without photo", async () => {
+      mockReq.fields = {
+        name: "Updated Product",
+        description: "Updated Description",
+        price: 200,
+        category: "cat-1",
+        quantity: 20,
+        shipping: true,
+      };
+      mockReq.files = {}; // No photo
+      mockReq.params = { pid: "p1" };
+
+      const updatedProduct = {
+        _id: "p1",
+        name: "Updated Product",
+        slug: "updated-product",
+        photo: { data: null, contentType: null },
+        save: jest.fn().mockResolvedValue(true),
+      };
+
+      productModel.findByIdAndUpdate.mockResolvedValue(updatedProduct);
+
+      await updateProductController(mockReq, mockRes);
+
+      expect(fs.readFileSync).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(201);
+    });
+
     it("should validate required fields on update", async () => {
       mockReq.fields = {
         description: "Updated Description",
@@ -847,9 +888,7 @@ describe("Product Controller", () => {
         error: "Name is Required",
       });
     });
-  });
 
-    describe("Update Product Controller - Validation Coverage", () => {
     const updateValidationTests = [
       { missingField: "description", expectedMessage: "Description is Required" },
       { missingField: "price", expectedMessage: "Price is Required" },
@@ -875,6 +914,57 @@ describe("Product Controller", () => {
         expect(mockRes.send).toHaveBeenCalledWith({
           error: expectedMessage,
         });
+      });
+    });
+
+    it("should validate photo size on update", async () => {
+      mockReq.fields = {
+        name: "Updated Product",
+        description: "Updated Description",
+        price: 200,
+        category: "cat-1",
+        quantity: 20,
+        shipping: true,
+      };
+      mockReq.files = {
+        photo: {
+          size: 1500000, // 1.5MB
+          path: "/tmp/photo.jpg",
+          type: "image/jpeg",
+        },
+      };
+      mockReq.params = { pid: "p1" };
+
+      await updateProductController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        error: "photo is Required and should be less then 1mb",
+      });
+    });
+
+    it("should handle errors when updating product", async () => {
+      mockReq.fields = {
+        name: "Updated Product",
+        description: "Updated Description",
+        price: 200,
+        category: "cat-1",
+        quantity: 20,
+        shipping: true,
+      };
+      mockReq.params = { pid: "p1" };
+
+      productModel.findByIdAndUpdate.mockImplementation(() => {
+        throw new Error("Database error");
+      });
+
+      await updateProductController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        error: expect.any(Error),
+        message: "Error in Updte product",
       });
     });
   });
@@ -919,261 +1009,6 @@ describe("Product Controller", () => {
         category: ["cat-1"],
       });
     });
-  });
-
-  // ============================================================================
-  // PRODUCT COUNT CONTROLLER TESTS
-  // ============================================================================
-  describe("Product Count Controller", () => {
-    it("should return total product count", async () => {
-      const estimatedDocumentCount = jest.fn().mockResolvedValue(42);
-      productModel.find.mockReturnValue({ estimatedDocumentCount });
-
-      await productCountController(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        success: true,
-        total: 42,
-      });
-    });
-  });
-
-  // ============================================================================
-  // PRODUCT LIST CONTROLLER TESTS
-  // ============================================================================
-  describe("Product List Controller", () => {
-    it("should return paginated products", async () => {
-      mockReq.params = { page: "2" };
-
-      const products = [{ _id: "p1", name: "Product 1" }];
-      const sort = jest.fn().mockResolvedValue(products);
-      const limit = jest.fn().mockReturnValue({ sort });
-      const skip = jest.fn().mockReturnValue({ limit });
-      const select = jest.fn().mockReturnValue({ skip });
-      productModel.find.mockReturnValue({ select });
-
-      await productListController(mockReq, mockRes);
-
-      expect(skip).toHaveBeenCalledWith(6);
-      expect(limit).toHaveBeenCalledWith(6);
-      expect(sort).toHaveBeenCalledWith({ createdAt: -1 });
-    });
-  });
-
-  // ============================================================================
-  // SEARCH PRODUCT CONTROLLER TESTS
-  // ============================================================================
-  describe("Search Product Controller", () => {
-    it("should search products by keyword", async () => {
-      mockReq.params = { keyword: "laptop" };
-
-      const products = [{ _id: "p1", name: "Laptop Pro" }];
-      const select = jest.fn().mockResolvedValue(products);
-      productModel.find.mockReturnValue({ select });
-
-      await searchProductController(mockReq, mockRes);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        $or: [
-          { name: { $regex: "laptop", $options: "i" } },
-          { description: { $regex: "laptop", $options: "i" } },
-        ],
-      });
-      expect(mockRes.json).toHaveBeenCalledWith(products);
-    });
-  });
-
-  // ============================================================================
-  // RELATED PRODUCT CONTROLLER TESTS
-  // ============================================================================
-  describe("Related Product Controller", () => {
-    it("should return related products", async () => {
-      mockReq.params = { pid: "p1", cid: "cat-1" };
-
-      const products = [{ _id: "p2", name: "Related Product" }];
-      const populate = jest.fn().mockResolvedValue(products);
-      const limit = jest.fn().mockReturnValue({ populate });
-      const select = jest.fn().mockReturnValue({ limit });
-      productModel.find.mockReturnValue({ select });
-
-      await relatedProductController(mockReq, mockRes);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        category: "cat-1",
-        _id: { $ne: "p1" },
-      });
-      expect(limit).toHaveBeenCalledWith(3);
-    });
-  });
-
-  // ============================================================================
-  // PRODUCT CATEGORY CONTROLLER TESTS
-  // ============================================================================
-  describe("Product Category Controller", () => {
-    it("should return products by category", async () => {
-      mockReq.params = { slug: "electronics" };
-
-      const category = { _id: "cat-1", slug: "electronics" };
-      categoryModel.findOne.mockResolvedValue(category);
-
-      const products = [{ _id: "p1", name: "Product 1" }];
-      const populate = jest.fn().mockResolvedValue(products);
-      productModel.find.mockReturnValue({ populate });
-
-      await productCategoryController(mockReq, mockRes);
-
-      expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "electronics" });
-      expect(productModel.find).toHaveBeenCalledWith({ category });
-    });
-  });
-
-  // ============================================================================
-  // BRAINTREE TOKEN CONTROLLER TESTS
-  // ============================================================================
-  describe("Braintree Token Controller", () => {
-    it("should generate client token", async () => {
-      const mockGateway = new braintree.BraintreeGateway();
-      mockGateway.clientToken.generate.mockImplementation((opts, callback) => {
-        callback(null, { clientToken: "token123" });
-      });
-
-      await braintreeTokenController(mockReq, mockRes);
-
-      expect(mockRes.send).toHaveBeenCalledWith({ clientToken: "token123" });
-    });
-  });
-
-  // ============================================================================
-  // BRAINTREE PAYMENT CONTROLLER TESTS
-  // ============================================================================
-  describe("Braintree Payment Controller", () => {
-    it("should process payment successfully", async () => {
-      mockReq.body = {
-        nonce: "nonce123",
-        cart: [{ price: 100 }, { price: 200 }],
-      };
-      mockReq.user = { _id: "user1" };
-
-      const mockGateway = new braintree.BraintreeGateway();
-      mockGateway.transaction.sale.mockImplementation((opts, callback) => {
-        callback(null, { success: true, transaction: { id: "txn123" } });
-      });
-
-      const mockOrder = new orderModel({});
-      mockOrder.save.mockResolvedValue(true);
-
-      await brainTreePaymentController(mockReq, mockRes);
-
-      expect(mockRes.json).toHaveBeenCalledWith({ ok: true });
-    });
-  });
-
-  // ============================================================================
-  // ADDITIONAL COVERAGE TESTS FOR UNCOVERED LINES
-  // ============================================================================
-
-  describe("Update Product Controller - Additional Coverage", () => {
-    it("should handle errors when updating product", async () => {
-      mockReq.fields = {
-        name: "Updated Product",
-        description: "Updated Description",
-        price: 200,
-        category: "cat-1",
-        quantity: 20,
-        shipping: true,
-      };
-      mockReq.params = { pid: "p1" };
-
-      productModel.findByIdAndUpdate.mockImplementation(() => {
-        throw new Error("Database error");
-      });
-
-      await updateProductController(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        success: false,
-        error: expect.any(Error),
-        message: "Error in Updte product",
-      });
-    });
-
-    it("should update product without photo", async () => {
-      mockReq.fields = {
-        name: "Updated Product",
-        description: "Updated Description",
-        price: 200,
-        category: "cat-1",
-        quantity: 20,
-        shipping: true,
-      };
-      mockReq.files = {}; // No photo
-      mockReq.params = { pid: "p1" };
-
-      const updatedProduct = {
-        _id: "p1",
-        name: "Updated Product",
-        slug: "updated-product",
-        photo: { data: null, contentType: null },
-        save: jest.fn().mockResolvedValue(true),
-      };
-
-      productModel.findByIdAndUpdate.mockResolvedValue(updatedProduct);
-
-      await updateProductController(mockReq, mockRes);
-
-      expect(fs.readFileSync).not.toHaveBeenCalled();
-      expect(mockRes.status).toHaveBeenCalledWith(201);
-    });
-
-    it("should validate photo size on update", async () => {
-      mockReq.fields = {
-        name: "Updated Product",
-        description: "Updated Description",
-        price: 200,
-        category: "cat-1",
-        quantity: 20,
-        shipping: true,
-      };
-      mockReq.files = {
-        photo: {
-          size: 1500000, // 1.5MB
-          path: "/tmp/photo.jpg",
-          type: "image/jpeg",
-        },
-      };
-      mockReq.params = { pid: "p1" };
-
-      await updateProductController(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        error: "photo is Required and should be less then 1mb",
-      });
-    });
-  });
-
-  describe("Product Filters Controller - Additional Coverage", () => {
-    it("should handle errors when filtering products", async () => {
-      mockReq.body = {
-        checked: ["cat-1"],
-        radio: [100, 500],
-      };
-
-      productModel.find.mockImplementation(() => {
-        throw new Error("Database error");
-      });
-
-      await productFiltersController(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        success: false,
-        message: "Error WHile Filtering Products",
-        error: expect.any(Error),
-      });
-    });
 
     it("should filter by price range only", async () => {
       mockReq.body = {
@@ -1204,9 +1039,45 @@ describe("Product Controller", () => {
 
       expect(productModel.find).toHaveBeenCalledWith({});
     });
+
+    it("should handle errors when filtering products", async () => {
+      mockReq.body = {
+        checked: ["cat-1"],
+        radio: [100, 500],
+      };
+
+      productModel.find.mockImplementation(() => {
+        throw new Error("Database error");
+      });
+
+      await productFiltersController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Error WHile Filtering Products",
+        error: expect.any(Error),
+      });
+    });
   });
 
-  describe("Product Count Controller - Additional Coverage", () => {
+  // ============================================================================
+  // PRODUCT COUNT CONTROLLER TESTS
+  // ============================================================================
+  describe("Product Count Controller", () => {
+    it("should return total product count", async () => {
+      const estimatedDocumentCount = jest.fn().mockResolvedValue(42);
+      productModel.find.mockReturnValue({ estimatedDocumentCount });
+
+      await productCountController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: true,
+        total: 42,
+      });
+    });
+
     it("should handle errors when counting products", async () => {
       productModel.find.mockImplementation(() => {
         throw new Error("Database error");
@@ -1223,22 +1094,25 @@ describe("Product Controller", () => {
     });
   });
 
-  describe("Product List Controller - Additional Coverage", () => {
-    it("should handle errors when listing products", async () => {
-      mockReq.params = { page: "1" };
+  // ============================================================================
+  // PRODUCT LIST CONTROLLER TESTS
+  // ============================================================================
+  describe("Product List Controller", () => {
+    it("should return paginated products", async () => {
+      mockReq.params = { page: "2" };
 
-      productModel.find.mockImplementation(() => {
-        throw new Error("Database error");
-      });
+      const products = [{ _id: "p1", name: "Product 1" }];
+      const sort = jest.fn().mockResolvedValue(products);
+      const limit = jest.fn().mockReturnValue({ sort });
+      const skip = jest.fn().mockReturnValue({ limit });
+      const select = jest.fn().mockReturnValue({ skip });
+      productModel.find.mockReturnValue({ select });
 
       await productListController(mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        success: false,
-        message: "error in per page ctrl",
-        error: expect.any(Error),
-      });
+      expect(skip).toHaveBeenCalledWith(6);
+      expect(limit).toHaveBeenCalledWith(6);
+      expect(sort).toHaveBeenCalledWith({ createdAt: -1 });
     });
 
     it("should default to page 1 when no page parameter", async () => {
@@ -1256,9 +1130,47 @@ describe("Product Controller", () => {
       expect(skip).toHaveBeenCalledWith(0);
       expect(limit).toHaveBeenCalledWith(6);
     });
+
+    it("should handle errors when listing products", async () => {
+      mockReq.params = { page: "1" };
+
+      productModel.find.mockImplementation(() => {
+        throw new Error("Database error");
+      });
+
+      await productListController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        message: "error in per page ctrl",
+        error: expect.any(Error),
+      });
+    });
   });
 
-  describe("Search Product Controller - Additional Coverage", () => {
+  // ============================================================================
+  // SEARCH PRODUCT CONTROLLER TESTS
+  // ============================================================================
+  describe("Search Product Controller", () => {
+    it("should search products by keyword", async () => {
+      mockReq.params = { keyword: "laptop" };
+
+      const products = [{ _id: "p1", name: "Laptop Pro" }];
+      const select = jest.fn().mockResolvedValue(products);
+      productModel.find.mockReturnValue({ select });
+
+      await searchProductController(mockReq, mockRes);
+
+      expect(productModel.find).toHaveBeenCalledWith({
+        $or: [
+          { name: { $regex: "laptop", $options: "i" } },
+          { description: { $regex: "laptop", $options: "i" } },
+        ],
+      });
+      expect(mockRes.json).toHaveBeenCalledWith(products);
+    });
+
     it("should handle errors when searching products", async () => {
       mockReq.params = { keyword: "laptop" };
 
@@ -1277,7 +1189,28 @@ describe("Product Controller", () => {
     });
   });
 
-  describe("Related Product Controller - Additional Coverage", () => {
+  // ============================================================================
+  // RELATED PRODUCT CONTROLLER TESTS
+  // ============================================================================
+  describe("Related Product Controller", () => {
+    it("should return related products", async () => {
+      mockReq.params = { pid: "p1", cid: "cat-1" };
+
+      const products = [{ _id: "p2", name: "Related Product" }];
+      const populate = jest.fn().mockResolvedValue(products);
+      const limit = jest.fn().mockReturnValue({ populate });
+      const select = jest.fn().mockReturnValue({ limit });
+      productModel.find.mockReturnValue({ select });
+
+      await relatedProductController(mockReq, mockRes);
+
+      expect(productModel.find).toHaveBeenCalledWith({
+        category: "cat-1",
+        _id: { $ne: "p1" },
+      });
+      expect(limit).toHaveBeenCalledWith(3);
+    });
+
     it("should handle errors when fetching related products", async () => {
       mockReq.params = { pid: "p1", cid: "cat-1" };
 
@@ -1296,7 +1229,26 @@ describe("Product Controller", () => {
     });
   });
 
-  describe("Product Category Controller - Additional Coverage", () => {
+  // ============================================================================
+  // PRODUCT CATEGORY CONTROLLER TESTS
+  // ============================================================================
+  describe("Product Category Controller", () => {
+    it("should return products by category", async () => {
+      mockReq.params = { slug: "electronics" };
+
+      const category = { _id: "cat-1", slug: "electronics" };
+      categoryModel.findOne.mockResolvedValue(category);
+
+      const products = [{ _id: "p1", name: "Product 1" }];
+      const populate = jest.fn().mockResolvedValue(products);
+      productModel.find.mockReturnValue({ populate });
+
+      await productCategoryController(mockReq, mockRes);
+
+      expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "electronics" });
+      expect(productModel.find).toHaveBeenCalledWith({ category });
+    });
+
     it("should handle errors when fetching products by category", async () => {
       mockReq.params = { slug: "electronics" };
 
@@ -1315,103 +1267,11 @@ describe("Product Controller", () => {
     });
   });
 
-  describe("Braintree Token Controller - Additional Coverage", () => {
-    it("should handle errors when generating token", async () => {
-      const mockGateway = new braintree.BraintreeGateway();
-      mockGateway.clientToken.generate.mockImplementation((opts, callback) => {
-        callback(new Error("Gateway error"), null);
-      });
-
-      await braintreeTokenController(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith(expect.any(Error));
-    });
-
-    it("should handle exception in token generation", async () => {
-      // Mock gateway to throw during call
-      const mockGateway = new braintree.BraintreeGateway();
-      mockGateway.clientToken.generate.mockImplementation(() => {
-        throw new Error("Unexpected error");
-      });
-
-      // This test covers the outer catch block
-      await braintreeTokenController(mockReq, mockRes);
-
-      // The function logs the error but doesn't send a response in catch
-      expect(mockGateway.clientToken.generate).toHaveBeenCalled();
-    });
-  });
-
-  describe("Braintree Payment Controller - Additional Coverage", () => {
-    it("should handle payment failure", async () => {
-      mockReq.body = {
-        nonce: "nonce123",
-        cart: [{ price: 100 }, { price: 200 }],
-      };
-      mockReq.user = { _id: "user1" };
-
-      const mockGateway = new braintree.BraintreeGateway();
-      mockGateway.transaction.sale.mockImplementation((opts, callback) => {
-        callback(new Error("Payment failed"), null);
-      });
-
-      await brainTreePaymentController(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith(expect.any(Error));
-    });
-
-    it("should handle exception in payment processing", async () => {
-      mockReq.body = {
-        nonce: "nonce123",
-        cart: [{ price: 100 }, { price: 200 }],
-      };
-      mockReq.user = { _id: "user1" };
-
-      const mockGateway = new braintree.BraintreeGateway();
-      mockGateway.transaction.sale.mockImplementation(() => {
-        throw new Error("Unexpected error");
-      });
-
-      // This test covers the outer catch block
-      await brainTreePaymentController(mockReq, mockRes);
-
-      expect(mockGateway.transaction.sale).toHaveBeenCalled();
-    });
-
-    it("should calculate total correctly with multiple items", async () => {
-      mockReq.body = {
-        nonce: "nonce123",
-        cart: [
-          { price: 100 },
-          { price: 200 },
-          { price: 150 },
-        ],
-      };
-      mockReq.user = { _id: "user1" };
-
-      const mockGateway = new braintree.BraintreeGateway();
-      mockGateway.transaction.sale.mockImplementation((opts, callback) => {
-        expect(opts.amount).toBe(450); // 100 + 200 + 150
-        callback(null, { success: true, transaction: { id: "txn123" } });
-      });
-
-      const mockOrder = new orderModel({});
-      mockOrder.save.mockResolvedValue(true);
-
-      await brainTreePaymentController(mockReq, mockRes);
-
-      expect(mockRes.json).toHaveBeenCalledWith({ ok: true });
-    });
-  });
-
   // ============================================================================
-  // BRAIN TREE TOKEN CONTROLLER - COMPLETE COVERAGE
+  // BRAINTREE TOKEN CONTROLLER TESTS
   // ============================================================================
-  describe("Braintree Token Controller - Complete Coverage", () => {
-  
-    it("should send client token on success", async () => {
+  describe("Braintree Token Controller", () => {
+    it("should generate client token", async () => {
       const mockResponse = { clientToken: "token123" };
       const gateway = getMockGateway();
       
@@ -1450,6 +1310,96 @@ describe("Product Controller", () => {
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.any(Error));
       consoleLogSpy.mockRestore();
+    });
+  });
+
+  // ============================================================================
+  // BRAINTREE PAYMENT CONTROLLER TESTS
+  // ============================================================================
+  describe("Braintree Payment Controller", () => {
+    it("should process payment successfully", async () => {
+      mockReq.body = {
+        nonce: "nonce123",
+        cart: [{ price: 100 }, { price: 200 }],
+      };
+      mockReq.user = { _id: "user1" };
+
+      const gateway = getMockGateway();
+      gateway.transaction.sale.mockImplementation((opts, callback) => {
+        callback(null, { success: true, transaction: { id: "txn123" } });
+      });
+
+      const mockOrder = new orderModel({});
+      mockOrder.save.mockResolvedValue(true);
+
+      await brainTreePaymentController(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith({ ok: true });
+    });
+
+    it("should send 500 when payment transaction fails in callback", async () => {
+      mockReq.body = {
+        nonce: "nonce123",
+        cart: [{ price: 100 }],
+      };
+      mockReq.user = { _id: "user1" };
+
+      const mockError = new Error("Payment declined");
+      const gateway = getMockGateway();
+      
+      gateway.transaction.sale.mockImplementation((opts, callback) => {
+        callback(mockError, null);
+      });
+
+      await brainTreePaymentController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith(mockError);
+    });
+
+    it("should log error when transaction.sale throws synchronously", async () => {
+      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      mockReq.body = {
+        nonce: "nonce123",
+        cart: [{ price: 100 }],
+      };
+      mockReq.user = { _id: "user1" };
+
+      const gateway = getMockGateway();
+      gateway.transaction.sale.mockImplementation(() => {
+        throw new Error("Transaction service unavailable");
+      });
+
+      await brainTreePaymentController(mockReq, mockRes);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.any(Error));
+      consoleLogSpy.mockRestore();
+    });
+
+    it("should calculate total correctly with multiple items", async () => {
+      mockReq.body = {
+        nonce: "nonce123",
+        cart: [
+          { price: 100 },
+          { price: 200 },
+          { price: 150 },
+        ],
+      };
+      mockReq.user = { _id: "user1" };
+
+      const gateway = getMockGateway();
+      gateway.transaction.sale.mockImplementation((opts, callback) => {
+        expect(opts.amount).toBe(450);
+        callback(null, { success: true, transaction: { id: "txn123" } });
+      });
+
+      const mockOrder = new orderModel({});
+      mockOrder.save.mockResolvedValue(true);
+
+      await brainTreePaymentController(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith({ ok: true });
     });
   });
 });
