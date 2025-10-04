@@ -144,9 +144,8 @@ describe("Product Controller", () => {
         },
       ];
 
-      test.each(validationTests)(
-        "should return 500 and error when $missingField is missing",
-        async ({ missingField, expectedMessage }) => {
+      validationTests.forEach(({ missingField, expectedMessage }) => {
+        it(`should return 500 and error when ${missingField} is missing`, async () => {
           // Arrange
           mockReq.fields = {
             name: "Test Product",
@@ -155,8 +154,10 @@ describe("Product Controller", () => {
             category: "cat-1",
             quantity: 10,
             shipping: false,
-            [missingField]: undefined,
           };
+          
+          // Remove the field we're testing
+          delete mockReq.fields[missingField];
 
           // Act
           await createProductController(mockReq, mockRes);
@@ -166,8 +167,8 @@ describe("Product Controller", () => {
           expect(mockRes.send).toHaveBeenCalledWith({
             error: expectedMessage,
           });
-        }
-      );
+        });
+      });
 
       it("should return error when photo size exceeds 1MB", async () => {
         // Arrange
@@ -296,10 +297,12 @@ describe("Product Controller", () => {
           },
         };
 
+        let capturedProduct;
         productModel.mockImplementation(function (doc) {
           Object.assign(this, doc);
           this.photo = { data: null, contentType: null };
           this.save = jest.fn().mockResolvedValue(this);
+          capturedProduct = this; // Capture the instance
         });
 
         // Act
@@ -308,6 +311,8 @@ describe("Product Controller", () => {
         // Assert
         expect(slugify).toHaveBeenCalledWith("Test Product");
         expect(fs.readFileSync).toHaveBeenCalledWith("/tmp/photo.jpg");
+        expect(capturedProduct.photo.contentType).toBe("image/jpeg"); // Verify contentType was set
+        expect(capturedProduct.photo.data).toEqual(Buffer.from("photo-data")); // Verify data was set
         expect(mockRes.status).toHaveBeenCalledWith(201);
         expect(mockRes.send).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -824,6 +829,36 @@ describe("Product Controller", () => {
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.send).toHaveBeenCalledWith({
         error: "Name is Required",
+      });
+    });
+  });
+
+    describe("Update Product Controller - Validation Coverage", () => {
+    const updateValidationTests = [
+      { missingField: "description", expectedMessage: "Description is Required" },
+      { missingField: "price", expectedMessage: "Price is Required" },
+      { missingField: "category", expectedMessage: "Category is Required" },
+      { missingField: "quantity", expectedMessage: "Quantity is Required" },
+    ];
+
+    updateValidationTests.forEach(({ missingField, expectedMessage }) => {
+      it(`should return 500 when ${missingField} is missing on update`, async () => {
+        mockReq.fields = {
+          name: "Updated Product",
+          description: "Updated Description",
+          price: 200,
+          category: "cat-1",
+          quantity: 20,
+        };
+        delete mockReq.fields[missingField];
+        mockReq.params = { pid: "p1" };
+
+        await updateProductController(mockReq, mockRes);
+
+        expect(mockRes.status).toHaveBeenCalledWith(500);
+        expect(mockRes.send).toHaveBeenCalledWith({
+          error: expectedMessage,
+        });
       });
     });
   });
