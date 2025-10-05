@@ -152,26 +152,8 @@ describe("UpdateProduct Component", () => {
     });
   });
 
-  describe("Data Fetching on Mount", () => {
-    it("fetches single product data using params.slug", async () => {
-      renderUpdateProduct();
-
-      await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledWith(
-          "/api/v1/product/get-product/test-product"
-        );
-      });
-    });
-
-    it("fetches all categories on mount", async () => {
-      renderUpdateProduct();
-
-      await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledWith("/api/v1/category/get-category");
-      });
-    });
-
-    it("sets form state with fetched product data", async () => {
+  describe("Data Fetching on Mount - CFG Coverage", () => {
+    it("fetches product and categories successfully and populates form", async () => {
       renderUpdateProduct();
 
       await waitFor(() => {
@@ -180,6 +162,13 @@ describe("UpdateProduct Component", () => {
         );
       });
 
+      // Verify both API calls were made
+      expect(axios.get).toHaveBeenCalledWith(
+        "/api/v1/product/get-product/test-product"
+      );
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/category/get-category");
+
+      // Verify form populated with product data
       expect(screen.getByPlaceholderText("write a description").value).toBe(
         "Test Description"
       );
@@ -187,7 +176,7 @@ describe("UpdateProduct Component", () => {
       expect(screen.getByPlaceholderText("write a quantity").value).toBe("10");
     });
 
-    it("handles category fetch API returning success false", async () => {
+    it("handles category fetch returning success false", async () => {
       axios.get.mockImplementation((url) => {
         if (url.includes("/api/v1/product/get-product/")) {
           return Promise.resolve({ data: mockProduct });
@@ -250,8 +239,8 @@ describe("UpdateProduct Component", () => {
     });
   });
 
-  describe("User Input", () => {
-    it("allows changing product name", async () => {
+  describe("User Input - Pairwise Testing", () => {
+    it("allows changing text and number input fields", async () => {
       renderUpdateProduct();
 
       await waitFor(() => {
@@ -260,64 +249,36 @@ describe("UpdateProduct Component", () => {
         );
       });
 
+      // Test name input (text)
       fireEvent.change(screen.getByPlaceholderText("write a name"), {
         target: { value: "Updated Product Name" },
       });
-
       expect(screen.getByPlaceholderText("write a name").value).toBe(
         "Updated Product Name"
       );
-    });
 
-    it("allows changing product description", async () => {
-      renderUpdateProduct();
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText("write a description").value).toBe(
-          "Test Description"
-        );
-      });
-
+      // Test description input (textarea)
       fireEvent.change(screen.getByPlaceholderText("write a description"), {
         target: { value: "Updated Description" },
       });
-
       expect(screen.getByPlaceholderText("write a description").value).toBe(
         "Updated Description"
       );
-    });
 
-    it("allows changing product price", async () => {
-      renderUpdateProduct();
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText("write a Price").value).toBe("100");
-      });
-
+      // Test price input (number)
       fireEvent.change(screen.getByPlaceholderText("write a Price"), {
         target: { value: "200" },
       });
-
       expect(screen.getByPlaceholderText("write a Price").value).toBe("200");
-    });
 
-    it("allows changing product quantity", async () => {
-      renderUpdateProduct();
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText("write a quantity").value).toBe(
-          "10"
-        );
-      });
-
+      // Test quantity input (number)
       fireEvent.change(screen.getByPlaceholderText("write a quantity"), {
         target: { value: "20" },
       });
-
       expect(screen.getByPlaceholderText("write a quantity").value).toBe("20");
     });
 
-    it("allows changing product category", async () => {
+    it("allows changing select dropdown fields", async () => {
       renderUpdateProduct();
 
       await waitFor(() => {
@@ -326,44 +287,28 @@ describe("UpdateProduct Component", () => {
         );
       });
 
-      // Find the category select by its class
       const selects = screen.getAllByRole("combobox");
-      const categorySelect = selects[0]; // First Select is category
+      const categorySelect = selects[0];
+      const shippingSelect = selects[1];
 
+      // Test category select
       fireEvent.mouseDown(categorySelect);
-
       await waitFor(() => {
         expect(screen.getByText("Another Category")).toBeInTheDocument();
       });
-
       fireEvent.click(screen.getByText("Another Category"));
-    });
 
-    it("allows changing shipping option", async () => {
-      renderUpdateProduct();
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText("write a name").value).toBe(
-          "Test Product"
-        );
-      });
-
-      // Find the shipping select by its class
-      const selects = screen.getAllByRole("combobox");
-      const shippingSelect = selects[1]; // Second Select is shipping
-
+      // Test shipping select
       fireEvent.mouseDown(shippingSelect);
-
       await waitFor(() => {
         expect(screen.getByText("No")).toBeInTheDocument();
       });
-
       fireEvent.click(screen.getByText("No"));
     });
   });
 
-  describe("Photo Upload & Preview", () => {
-    it("displays photo filename in upload button when file selected", async () => {
+  describe("Photo Upload & Preview - BVA", () => {
+    it("displays filename and preview when new photo selected", async () => {
       renderUpdateProduct();
 
       await waitFor(() => {
@@ -379,30 +324,13 @@ describe("UpdateProduct Component", () => {
 
       fireEvent.change(input, { target: { files: [file] } });
 
+      // Verify filename displayed
       await waitFor(() => {
         expect(screen.getByText("test-photo.jpg")).toBeInTheDocument();
       });
-    });
 
-    it("shows new photo preview when file selected", async () => {
-      renderUpdateProduct();
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText("write a name").value).toBe(
-          "Test Product"
-        );
-      });
-
-      const file = new File(["photo"], "test-photo.jpg", {
-        type: "image/jpeg",
-      });
-      const input = screen.getByLabelText(/upload photo/i);
-
-      fireEvent.change(input, { target: { files: [file] } });
-
-      await waitFor(() => {
-        expect(URL.createObjectURL).toHaveBeenCalledWith(file);
-      });
+      // Verify preview created
+      expect(URL.createObjectURL).toHaveBeenCalledWith(file);
     });
 
     it("shows existing photo from API when no new photo selected", async () => {
@@ -423,8 +351,8 @@ describe("UpdateProduct Component", () => {
     });
   });
 
-  describe("Update Product", () => {
-    it("creates FormData with all fields correctly", async () => {
+  describe("Update Product - Equivalence Partitioning", () => {
+    it("updates product successfully with FormData and navigates", async () => {
       renderUpdateProduct();
 
       await waitFor(() => {
@@ -433,75 +361,40 @@ describe("UpdateProduct Component", () => {
         );
       });
 
-      axios.put.mockResolvedValueOnce({
-        data: { success: true },
+      // Add new photo to test photo inclusion in FormData
+      const file = new File(["photo"], "new-photo.jpg", {
+        type: "image/jpeg",
       });
+      const input = screen.getByLabelText(/upload photo/i);
+      fireEvent.change(input, { target: { files: [file] } });
 
+      // Change name to test form data
       fireEvent.change(screen.getByPlaceholderText("write a name"), {
         target: { value: "Updated Product" },
       });
 
+      axios.put.mockResolvedValueOnce({
+        data: { success: true },
+      });
+
       fireEvent.click(screen.getByRole("button", { name: /update product/i }));
 
+      // Verify FormData sent with all fields
       await waitFor(() => {
         expect(axios.put).toHaveBeenCalledWith(
           "/api/v1/product/update-product/product123",
           expect.any(FormData)
         );
       });
-    });
 
-    it("includes photo in FormData when new photo selected", async () => {
-      renderUpdateProduct();
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText("write a name").value).toBe(
-          "Test Product"
-        );
-      });
-
-      const file = new File(["photo"], "new-photo.jpg", {
-        type: "image/jpeg",
-      });
-      const input = screen.getByLabelText(/upload photo/i);
-
-      fireEvent.change(input, { target: { files: [file] } });
-
-      axios.put.mockResolvedValueOnce({
-        data: { success: true },
-      });
-
-      fireEvent.click(screen.getByRole("button", { name: /update product/i }));
-
-      await waitFor(() => {
-        expect(axios.put).toHaveBeenCalled();
-      });
-    });
-
-    it("shows success toast and navigates on successful update", async () => {
-      renderUpdateProduct();
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText("write a name").value).toBe(
-          "Test Product"
-        );
-      });
-
-      axios.put.mockResolvedValueOnce({
-        data: { success: true },
-      });
-
-      fireEvent.click(screen.getByRole("button", { name: /update product/i }));
-
-      await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith(
-          "Product Updated Successfully"
-        );
-      });
+      // Verify success toast and navigation
+      expect(toast.success).toHaveBeenCalledWith(
+        "Product Updated Successfully"
+      );
       expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
     });
 
-    it("shows error toast when update fails", async () => {
+    it("shows error toast when API returns success false", async () => {
       renderUpdateProduct();
 
       await waitFor(() => {
