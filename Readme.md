@@ -112,3 +112,36 @@ models/productModel.js
 config/db.js
 
 ---
+
+### John Michael San Diego (A0253342M)
+
+### Frontend:
+
+context/auth.js
+pages/Auth/Register.js
+pages/Auth/Login.js
+components/AdminMenu.js
+pages/AdminDashboard.js
+pages/Auth/ForgotPassword.js
+components/Route/Public.js
+
+### Backend:
+
+middlewares/authMiddleware.js
+helpers/authHelper.js
+controllers/authControllers
+
+#### Bug Fix:
+
+##### **authMiddleware.js**
+
+- **Duplicate key warning:**  
+  In `Prices.js`, multiple items shared the same `_id`, producing the React warning:
+  > “Encountered two children with the same key.”  
+  > Fixed by ensuring each rendered element uses a unique key.
+- **Missing `key` prop in Header.js:**  
+  Categories were mapped without unique keys. Added `key` attributes to each element.
+- **Filter not updating total count:**  
+  When filtering products, the total product count was not refreshed, causing a the filtered products to not show. Fixed logic to update the total count whenever filters change.
+
+---
