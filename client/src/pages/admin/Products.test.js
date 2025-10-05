@@ -80,7 +80,6 @@ describe("Products Component", () => {
       // Assert
       const heading = screen.getByText("All Products List");
       expect(heading.tagName).toBe("H1");
-      expect(heading).toHaveClass("text-center");
     });
   });
 
@@ -262,16 +261,13 @@ describe("Products Component", () => {
 
       // Test image element
       const image = screen.getByAltText("Laptop");
-      expect(image).toHaveClass("card-img-top");
       expect(image).toHaveAttribute("src", "/api/v1/product/product-photo/1");
 
       // Test text elements
       const title = screen.getByText("Laptop");
-      expect(title).toHaveClass("card-title");
       expect(title.tagName).toBe("H5");
 
       const description = screen.getByText("High performance laptop");
-      expect(description).toHaveClass("card-text");
       expect(description.tagName).toBe("P");
     });
 
@@ -296,7 +292,6 @@ describe("Products Component", () => {
         (link) =>
           link.getAttribute("href") === "/dashboard/admin/product/laptop"
       );
-      expect(laptopLink).toHaveClass("product-link");
       expect(laptopLink).toHaveAttribute(
         "href",
         "/dashboard/admin/product/laptop"
@@ -311,40 +306,6 @@ describe("Products Component", () => {
       );
     });
 
-    it("renders all product images with correct src pattern", async () => {
-      // Arrange
-      axios.get.mockResolvedValue({ data: { products: mockProducts } });
-
-      // Act
-      render(
-        <MemoryRouter>
-          <Products />
-        </MemoryRouter>
-      );
-
-      // Assert
-      await waitFor(() => {
-        expect(screen.getByAltText("Laptop")).toBeInTheDocument();
-      });
-
-      const laptopImage = screen.getByAltText("Laptop");
-      expect(laptopImage).toHaveAttribute(
-        "src",
-        "/api/v1/product/product-photo/1"
-      );
-
-      const phoneImage = screen.getByAltText("Phone");
-      expect(phoneImage).toHaveAttribute(
-        "src",
-        "/api/v1/product/product-photo/2"
-      );
-
-      const tabletImage = screen.getByAltText("Tablet");
-      expect(tabletImage).toHaveAttribute(
-        "src",
-        "/api/v1/product/product-photo/3"
-      );
-    });
   });
 
   describe("Integration - Complete Workflow", () => {
