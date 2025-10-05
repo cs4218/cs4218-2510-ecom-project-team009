@@ -94,22 +94,22 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 
 ### Frontend:
 
-1. pages/ProductDetails.js
-2. pages/CategoryProduct.js
-3. pages/Contact.js
-4. pages/Policy.js
-5. pages/About.js
-6. pages/Pagenotfound.js
-7. components/Footer.js
-8. components/Header.js
-9. components/Layout.js
-10. components/Spinner.js
+pages/ProductDetails.js
+pages/CategoryProduct.js
+pages/Contact.js
+pages/Policy.js
+pages/About.js
+pages/Pagenotfound.js
+components/Footer.js
+components/Header.js
+components/Layout.js
+components/Spinner.js
 
 ### Backend:
 
-1. controllers/productController.js
-2. models/productModel.js
-3. config/db.js
+controllers/productController.js
+models/productModel.js
+config/db.js
 
 ---
 
@@ -129,19 +129,50 @@ components/Route/Public.js
 
 middlewares/authMiddleware.js
 helpers/authHelper.js
-controllers/authControllers
+controllers/authController.js
 
 #### Bug Fix:
 
 ##### **authMiddleware.js**
 
-- **Duplicate key warning:**  
-  In `Prices.js`, multiple items shared the same `_id`, producing the React warning:
-  > “Encountered two children with the same key.”  
-  > Fixed by ensuring each rendered element uses a unique key.
-- **Missing `key` prop in Header.js:**  
-  Categories were mapped without unique keys. Added `key` attributes to each element.
-- **Filter not updating total count:**  
-  When filtering products, the total product count was not refreshed, causing a the filtered products to not show. Fixed logic to update the total count whenever filters change.
+- requireSignIn now returns appropriate response when error occurs
+- remove console.errors
+
+##### **authController.js**
+
+- add status 400 for invalid registerController input payload
+- fix typos such as ‘Emai’ to Email
+- fix inconsistent casing of response messages throughout the controller
+- remove dead code testController
+
+##### **auth.js**
+
+- add missing React import statement
+
+##### **Register.js**
+
+- add basic validations across the inputs instead of just a plain “required”
+- fix placeholder case and trailing spaces
+- accessible by authenticated users
+
+##### **Login.js**
+
+- add basic validation across inputs as well
+- fix placeholder case and trailing spaces
+- added fix toast success message fallback
+- missing missing password
+- accessible by authenticated users
+
+##### **AdminDashboard.js**
+
+- remove user link dead code
+
+##### **ForgotPassword.js**
+
+- Missing forgot password functionality so created such page and feature
+
+##### **Public.js**
+
+- Authenticated user can still access auth pages so implemented public route guard
 
 ---
