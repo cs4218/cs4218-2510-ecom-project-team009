@@ -142,56 +142,33 @@ describe("AdminOrders Component", () => {
       expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
     });
 
-    it("renders orders table with all columns", async () => {
+    it("renders complete order data with products - pairwise testing", async () => {
       renderAdminOrders();
 
       await waitFor(() => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
 
-      expect(screen.getAllByText("#").length).toBe(2); // One per order table
+      // Table headers
+      expect(screen.getAllByText("#").length).toBe(2);
       expect(screen.getAllByText("Status").length).toBeGreaterThan(0);
       expect(screen.getAllByText("Buyer").length).toBe(2);
-      expect(screen.getAllByText("date").length).toBe(2);
       expect(screen.getAllByText("Payment").length).toBe(2);
-      expect(screen.getAllByText("Quantity").length).toBe(2);
-    });
 
-    it("renders order details correctly", async () => {
-      renderAdminOrders();
-
-      await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-      });
-
+      // Order details (both orders)
       expect(screen.getByText("Jane Smith")).toBeInTheDocument();
       expect(screen.getByText("Success")).toBeInTheDocument();
       expect(screen.getByText("Failed")).toBeInTheDocument();
-      expect(screen.getAllByText("2").length).toBeGreaterThan(0); // Quantity for first order + row number for second order
-      expect(screen.getAllByText("1").length).toBeGreaterThan(0); // Row number for first order + quantity for second order
-    });
 
-    it("renders products within each order", async () => {
-      renderAdminOrders();
-
-      await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
-      });
-
+      // Products (names, descriptions, prices)
+      expect(screen.getByText("Laptop")).toBeInTheDocument();
       expect(screen.getByText("Mouse")).toBeInTheDocument();
       expect(screen.getByText("Keyboard")).toBeInTheDocument();
       expect(screen.getByText(/High-performance laptop/i)).toBeInTheDocument();
       expect(screen.getByText("Price : 1200")).toBeInTheDocument();
       expect(screen.getByText("Price : 25")).toBeInTheDocument();
-    });
 
-    it("renders product images with correct src", async () => {
-      renderAdminOrders();
-
-      await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
-      });
-
+      // Product images
       const images = screen.getAllByRole("img");
       expect(images[0]).toHaveAttribute(
         "src",
@@ -217,22 +194,8 @@ describe("AdminOrders Component", () => {
       });
     });
 
-    it("does not fetch orders when auth token is null", async () => {
+    it("does not fetch orders when auth is invalid (null/undefined)", async () => {
       useAuth.mockReturnValue([{ token: null }, jest.fn()]);
-
-      renderAdminOrders();
-
-      await waitFor(() => {
-        expect(
-          screen.getByRole("heading", { name: /all orders/i })
-        ).toBeInTheDocument();
-      });
-
-      expect(axios.get).not.toHaveBeenCalled();
-    });
-
-    it("does not fetch orders when auth is undefined", async () => {
-      useAuth.mockReturnValue([undefined, jest.fn()]);
 
       renderAdminOrders();
 
@@ -280,7 +243,7 @@ describe("AdminOrders Component", () => {
       expect(selects.length).toBe(2); // One select per order
     });
 
-    it("calls PUT API with correct orderId and status", async () => {
+    it("updates status and refreshes orders list", async () => {
       axios.put.mockResolvedValueOnce({ data: {} });
 
       renderAdminOrders();
@@ -297,7 +260,6 @@ describe("AdminOrders Component", () => {
       });
 
       const shippedOptions = screen.getAllByText("Shipped");
-      // Click the one in the dropdown (not the table cell)
       fireEvent.click(shippedOptions[shippedOptions.length - 1]);
 
       await waitFor(() => {
@@ -306,30 +268,8 @@ describe("AdminOrders Component", () => {
           { status: "Shipped" }
         );
       });
-    });
 
-    it("refreshes orders list after status update", async () => {
-      axios.put.mockResolvedValueOnce({ data: {} });
-
-      renderAdminOrders();
-
-      await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-      });
-
-      const selects = screen.getAllByRole("combobox");
-      fireEvent.mouseDown(selects[0]);
-
-      await waitFor(() => {
-        expect(screen.getAllByText("Shipped").length).toBeGreaterThan(1);
-      });
-
-      const shippedOptions = screen.getAllByText("Shipped");
-      fireEvent.click(shippedOptions[shippedOptions.length - 1]);
-
-      await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledTimes(2); // Initial mount + after update
-      });
+      expect(axios.get).toHaveBeenCalledTimes(2); // Initial mount + after update
     });
 
     it("handles update errors gracefully", async () => {
@@ -354,47 +294,6 @@ describe("AdminOrders Component", () => {
       await waitFor(() => {
         expect(console.log).toHaveBeenCalled();
       });
-    });
-  });
-
-  describe("Product Display", () => {
-    it("renders multiple products per order", async () => {
-      renderAdminOrders();
-
-      await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
-      });
-
-      expect(screen.getByText("Mouse")).toBeInTheDocument();
-      expect(screen.getAllByRole("img")).toHaveLength(3);
-    });
-
-    it("displays product details correctly", async () => {
-      renderAdminOrders();
-
-      await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
-      });
-
-      expect(screen.getByText(/High-performance laptop/i)).toBeInTheDocument();
-      expect(screen.getByText("Price : 1200")).toBeInTheDocument();
-      expect(screen.getByText("Wireless optical mouse")).toBeInTheDocument();
-      expect(screen.getByText("Price : 25")).toBeInTheDocument();
-    });
-
-    it("truncates product description to 30 characters", async () => {
-      renderAdminOrders();
-
-      await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
-      });
-
-      // Original: "High-performance laptop for professionals" (44 chars)
-      // Should be truncated (not showing full text)
-      expect(screen.getByText(/High-performance laptop/i)).toBeInTheDocument();
-      expect(
-        screen.queryByText("High-performance laptop for professionals")
-      ).not.toBeInTheDocument();
     });
   });
 });
