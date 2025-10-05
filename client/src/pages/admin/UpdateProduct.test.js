@@ -510,6 +510,126 @@ describe("UpdateProduct Component", () => {
       });
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+
+    it("converts shipping: false from API to string '0' for dropdown", async () => {
+      // Mock API with shipping: false
+      axios.get.mockImplementation((url) => {
+        if (url.includes("/api/v1/product/get-product/")) {
+          return Promise.resolve({
+            data: {
+              product: {
+                _id: "product123",
+                name: "Test Product",
+                description: "Test Description",
+                price: 100,
+                quantity: 10,
+                shipping: false, // Boolean false from API
+                category: {
+                  _id: "cat123",
+                  name: "Test Category",
+                },
+              },
+            },
+          });
+        }
+        if (url === "/api/v1/category/get-category") {
+          return Promise.resolve({ data: mockCategories });
+        }
+        return Promise.reject(new Error("Unknown URL"));
+      });
+
+      renderUpdateProduct();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("write a name").value).toBe(
+          "Test Product"
+        );
+      });
+
+      // Verify shipping dropdown has correct value by opening it
+      const selects = screen.getAllByRole("combobox");
+      fireEvent.mouseDown(selects[1]);
+
+      await waitFor(() => {
+        expect(screen.getAllByText("Yes").length).toBeGreaterThan(0);
+      });
+
+      // The "No" option should be available
+      expect(screen.getAllByText("No").length).toBeGreaterThan(0);
+    });
+
+    it("does not append photo to FormData when no new photo is selected", async () => {
+      const appendSpy = jest.spyOn(FormData.prototype, "append");
+
+      renderUpdateProduct();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("write a name").value).toBe(
+          "Test Product"
+        );
+      });
+
+      axios.put.mockResolvedValueOnce({
+        data: { success: true },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /update product/i }));
+
+      await waitFor(() => {
+        expect(axios.put).toHaveBeenCalled();
+      });
+
+      // Verify photo was NOT appended to FormData
+      expect(appendSpy).not.toHaveBeenCalledWith("photo", expect.anything());
+
+      // Verify other fields were still appended
+      expect(appendSpy).toHaveBeenCalledWith("name", "Test Product");
+      expect(appendSpy).toHaveBeenCalledWith("shipping", "1");
+
+      appendSpy.mockRestore();
+    });
+
+    it("appends photo to FormData when new photo is selected", async () => {
+      const appendSpy = jest.spyOn(FormData.prototype, "append");
+
+      renderUpdateProduct();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("write a name").value).toBe(
+          "Test Product"
+        );
+      });
+
+      // Upload new photo
+      const file = new File(["photo"], "new-photo.jpg", {
+        type: "image/jpeg",
+      });
+      const input = screen.getByLabelText(/upload photo/i);
+      fireEvent.change(input, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(screen.getByText("new-photo.jpg")).toBeInTheDocument();
+      });
+
+      axios.put.mockResolvedValueOnce({
+        data: { success: true },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /update product/i }));
+
+      await waitFor(() => {
+        expect(axios.put).toHaveBeenCalled();
+      });
+
+      // Verify photo WAS appended to FormData
+      expect(appendSpy).toHaveBeenCalledWith("photo", file);
+
+      // Verify other fields were still appended
+      expect(appendSpy).toHaveBeenCalledWith("name", "Test Product");
+      expect(appendSpy).toHaveBeenCalledWith("shipping", "1");
+
+      appendSpy.mockRestore();
+    });
   });
 
   describe("Delete Product", () => {
