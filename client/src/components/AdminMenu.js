@@ -30,7 +30,12 @@ const AdminMenu = () => {
           >
             Orders
           </NavLink>
-          {/* bugfix diego: remove user link dead code.. */}
+          <NavLink
+            to="/dashboard/admin/users"
+            className="list-group-item list-group-item-action"
+          >
+            Users
+          </NavLink>
         </div>
       </div>
     </>
