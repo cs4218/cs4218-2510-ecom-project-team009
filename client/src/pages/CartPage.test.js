@@ -173,7 +173,7 @@ describe("EP: user/session partitions affecting checkout", () => {
   });
 
   test("authed with address → Pay enabled", async () => {
-    axios.get.mockResolvedValue({ data: { clientToken: "FAKE_TOKEN" } });
+    axios.get.mockResolvedValueOnce({ data: { clientToken: "FAKE_TOKEN" } });
 
     mockAuth = {
       user: { _id: "u1", name: "John", address: "123" },
@@ -183,8 +183,10 @@ describe("EP: user/session partitions affecting checkout", () => {
 
     await renderCart();
 
+    await screen.findByTestId("dropin"); // ensure DropIn rendered
+    await new Promise((r) => setTimeout(r, 0)); // flush microtasks
     const btn = await screen.findByRole("button", { name: /Make Payment/i });
-    expect(btn).toBeEnabled();
+    await waitFor(() => expect(btn).toBeEnabled()); // ensure final state
   });
 
   test("empty cart regardless of auth → no DropIn", async () => {
@@ -217,6 +219,41 @@ describe("EP: removeCartItem", () => {
       "cart_u777",
       expect.any(String)
     );
+  });
+});
+
+describe("EP: handlePayment success flow", () => {
+  test("successful payment triggers cleanup, navigation, and toast", async () => {
+    // Mock auth and cart as valid user ready to pay
+    mockAuth = {
+      user: { _id: "u1", name: "John", address: "Blk 42" },
+      token: "TKN",
+    };
+    mockCart = [{ _id: "p1", name: "A", description: "desc A", price: 10 }];
+
+    // axios.post should resolve normally
+    axios.post.mockResolvedValueOnce({ data: { ok: true } });
+
+    // Render the CartPage and let useEffect + DropIn complete
+    await renderCart();
+
+    await screen.findByTestId("dropin");
+    await new Promise((r) => setTimeout(r, 0));
+
+    const btn = await screen.findByRole("button", { name: /Make Payment/i });
+    fireEvent.click(btn);
+
+    // Wait for async handlePayment completion
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        "Payment Completed Successfully "
+      );
+    });
+
+    // Verify all expected success actions
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith("cart");
+    expect(mockSetCart).toHaveBeenCalledWith([]);
+    expect(mockNavigate).toHaveBeenCalledWith("/dashboard/user/orders");
   });
 });
 
@@ -316,11 +353,19 @@ describe("Pairwise: Auth×Token×Cart×Address", () => {
 
       const btn = screen.queryByRole("button", { name: /Make Payment/i });
       if (pay === "na") {
-        expect(btn).not.toBeInTheDocument();
-      } else if (pay === "disabled") {
-        expect(btn).toBeDisabled();
-      } else if (pay === "enabled") {
-        expect(btn).toBeEnabled();
+        expect(
+          screen.queryByRole("button", { name: /Make Payment/i })
+        ).not.toBeInTheDocument();
+      } else {
+        const btn = await screen.findByRole("button", {
+          name: /Make Payment/i,
+        });
+
+        if (pay === "disabled") {
+          expect(btn).toBeDisabled();
+        } else if (pay === "enabled") {
+          await waitFor(() => expect(btn).toBeEnabled());
+        }
       }
     }
   );
