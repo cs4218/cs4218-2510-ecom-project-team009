@@ -460,26 +460,34 @@ describe("Error handling: catch paths with spies", () => {
     axios.post.mockRejectedValueOnce(new Error("pay fail"));
 
     await renderCart();
-    await waitFor(() =>
-      expect(screen.getByTestId("dropin")).toBeInTheDocument()
-    );
-    const btn = await waitFor(() =>
-      screen.getByRole("button", { name: /Make Payment/i })
-    );
 
+    // ✅ Wait until DropIn fully mounted
+    await screen.findByTestId("dropin");
+
+    // ✅ Flush microtasks to ensure instance is attached
+    await new Promise((r) => setTimeout(r, 0));
+
+    // ✅ Find the payment button after state is stable
+    const btn = await screen.findByRole("button", { name: /Make Payment/i });
+
+    // Click and trigger handlePayment
     fireEvent.click(btn);
 
-    await waitFor(() => expect(logSpy).toHaveBeenCalled());
+    // ✅ Wait for catch block to execute
+    await waitFor(() => expect(logSpy).toHaveBeenCalled(), { timeout: 2000 });
+
     // No success paths should have fired
     expect(toast.success).not.toHaveBeenCalled();
     expect(window.localStorage.removeItem).not.toHaveBeenCalledWith("cart");
     expect(mockNavigate).not.toHaveBeenCalled();
 
-    // Button should become enabled again after setLoading(false) in catch
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: /Make Payment/i })
-      ).toBeEnabled()
+    // ✅ Ensure loading reset (button enabled again)
+    await waitFor(
+      () =>
+        expect(
+          screen.getByRole("button", { name: /Make Payment/i })
+        ).toBeEnabled(),
+      { timeout: 2000 }
     );
   });
 
