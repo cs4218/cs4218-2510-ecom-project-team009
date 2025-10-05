@@ -290,7 +290,7 @@ describe("Forgot Password Component", () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it("shows error when answer is less than 3 characters", async () => {
+    it("shows error when answer is 2 characters (below minimum)", async () => {
       renderForgotPassword();
       fillValidForm();
       fireEvent.change(screen.getByPlaceholderText("Enter your answer"), {
@@ -305,6 +305,48 @@ describe("Forgot Password Component", () => {
       await screen.findByText("Security answer must be at least 3 characters");
       expect(axios.post).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("accepts answer with exactly 3 characters (at minimum boundary)", async () => {
+      axios.post.mockResolvedValueOnce({
+        data: {
+          success: true,
+          message: "Password reset successfully",
+        },
+      });
+      renderForgotPassword();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your answer"), {
+        target: { value: "ABC" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /reset password/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith("Password reset successfully");
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("accepts answer with 4 characters (above minimum)", async () => {
+      axios.post.mockResolvedValueOnce({
+        data: {
+          success: true,
+          message: "Password reset successfully",
+        },
+      });
+      renderForgotPassword();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your answer"), {
+        target: { value: "ABCD" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /reset password/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith("Password reset successfully");
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
     });
   });
 
@@ -327,7 +369,7 @@ describe("Forgot Password Component", () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it("shows error when password is less than 6 characters", async () => {
+    it("shows error when password is 5 characters (below minimum)", async () => {
       renderForgotPassword();
       fillValidForm();
       fireEvent.change(screen.getByPlaceholderText("Enter your new password"), {
@@ -342,6 +384,48 @@ describe("Forgot Password Component", () => {
       await screen.findByText("New password must be at least 6 characters");
       expect(axios.post).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("accepts password with exactly 6 characters (at minimum boundary)", async () => {
+      axios.post.mockResolvedValueOnce({
+        data: {
+          success: true,
+          message: "Password reset successfully",
+        },
+      });
+      renderForgotPassword();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your new password"), {
+        target: { value: "Pass12" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /reset password/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith("Password reset successfully");
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("accepts password with 7 characters (above minimum)", async () => {
+      axios.post.mockResolvedValueOnce({
+        data: {
+          success: true,
+          message: "Password reset successfully",
+        },
+      });
+      renderForgotPassword();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your new password"), {
+        target: { value: "Pass123" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /reset password/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith("Password reset successfully");
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
     });
   });
 
