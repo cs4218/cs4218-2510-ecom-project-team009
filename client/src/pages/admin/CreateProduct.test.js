@@ -286,6 +286,8 @@ describe("CreateProduct Component", () => {
 
   describe("Create Product", () => {
     it("creates FormData with all fields correctly", async () => {
+      const appendSpy = jest.spyOn(FormData.prototype, "append");
+
       renderCreateProduct();
 
       await waitFor(() => {
@@ -295,6 +297,20 @@ describe("CreateProduct Component", () => {
       });
 
       fillProductForm();
+
+      // Select category and shipping
+      const selects = screen.getAllByRole("combobox");
+      fireEvent.mouseDown(selects[0]);
+      await waitFor(() => {
+        expect(screen.getByText("Test Category")).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByText("Test Category"));
+
+      fireEvent.mouseDown(selects[1]);
+      await waitFor(() => {
+        expect(screen.getByText("Yes")).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByText("Yes"));
 
       axios.post.mockResolvedValueOnce({
         data: { success: true },
@@ -308,6 +324,15 @@ describe("CreateProduct Component", () => {
           expect.any(FormData)
         );
       });
+
+      expect(appendSpy).toHaveBeenCalledWith("name", "Test Product");
+      expect(appendSpy).toHaveBeenCalledWith("description", "Test Description");
+      expect(appendSpy).toHaveBeenCalledWith("price", "100");
+      expect(appendSpy).toHaveBeenCalledWith("quantity", "10");
+      expect(appendSpy).toHaveBeenCalledWith("category", "cat123");
+      expect(appendSpy).toHaveBeenCalledWith("shipping", "1");
+
+      appendSpy.mockRestore();
     });
 
     it("includes photo in FormData when selected", async () => {
