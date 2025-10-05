@@ -260,7 +260,7 @@ describe("Register Component", () => {
       expect(axios.post).not.toHaveBeenCalled();
     });
 
-    it("shows error when name is less than 2 characters", async () => {
+    it("shows error when name is less than 2 characters (below minimum)", async () => {
       renderRegister();
 
       fillValidForm();
@@ -272,8 +272,45 @@ describe("Register Component", () => {
       fireEvent.click(screen.getByRole("button", { name: /register/i }));
 
       await screen.findByText("Name must be at least 2 characters");
-
+      expect(toast.success).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
       expect(axios.post).not.toHaveBeenCalled();
+    });
+
+    it("accepts name with exactly 2 characters (at minimum boundary)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your name"), {
+        target: { value: "AB" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("accepts name with 3 characters (above minimum)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your name"), {
+        target: { value: "ABC" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
     });
   });
 
@@ -328,23 +365,60 @@ describe("Register Component", () => {
       await screen.findByText("Password must be at least 8 characters");
       expect(axios.post).not.toHaveBeenCalled();
     });
-  });
 
-  describe("Phone Validation", () => {
-    it("shows error when phone has less than 10 digits", async () => {
+    it("shows error when password is 7 characters (below minimum)", async () => {
       renderRegister();
-
       fillValidForm();
 
-      fireEvent.change(screen.getByPlaceholderText("Enter your phone"), {
-        target: { value: "123" },
+      fireEvent.change(screen.getByPlaceholderText("Enter your password"), {
+        target: { value: "Pass123" },
       });
+
       fireEvent.click(screen.getByRole("button", { name: /register/i }));
 
-      await screen.findByText("Enter a valid phone number (10-15 digits)");
+      await screen.findByText("Password must be at least 8 characters");
+      expect(mockNavigate).not.toHaveBeenCalled();
       expect(axios.post).not.toHaveBeenCalled();
     });
 
+    it("accepts password with exactly 8 characters (at minimum boundary)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your password"), {
+        target: { value: "Pass1234" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("accepts password with 9 characters (above minimum)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your password"), {
+        target: { value: "Pass12345" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+  });
+
+  describe("Phone Validation", () => {
     it("accepts phone with formatting characters", async () => {
       axios.post.mockResolvedValueOnce({ data: { success: true } });
 
@@ -357,6 +431,111 @@ describe("Register Component", () => {
       fireEvent.click(screen.getByRole("button", { name: /register/i }));
 
       await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    });
+
+    it("shows error when phone has 9 digits (below minimum)", async () => {
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your phone"), {
+        target: { value: "123456789" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await screen.findByText("Enter a valid phone number (10-15 digits)");
+      expect(axios.post).not.toHaveBeenCalled();
+      expect(toast.success).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("accepts phone with exactly 10 digits (at minimum boundary)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your phone"), {
+        target: { value: "1234567890" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("accepts phone with 11 digits (above minimum)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your phone"), {
+        target: { value: "12345678901" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("accepts phone with 14 digits (below maximum)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your phone"), {
+        target: { value: "12345678901234" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("accepts phone with exactly 15 digits (at maximum boundary)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your phone"), {
+        target: { value: "123456789012345" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("shows error when phone has 16 digits (above maximum)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your phone"), {
+        target: { value: "1234567890123456" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await screen.findByText("Enter a valid phone number (10-15 digits)");
+      expect(axios.post).not.toHaveBeenCalled();
+      expect(toast.success).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -379,19 +558,54 @@ describe("Register Component", () => {
       expect(axios.post).not.toHaveBeenCalled();
     });
 
-    it("shows error when address is less than 5 characters", async () => {
+    it("shows error when address is 4 characters (below minimum)", async () => {
       renderRegister();
-
       fillValidForm();
 
       fireEvent.change(screen.getByPlaceholderText("Enter your address"), {
-        target: { value: "abc" },
+        target: { value: "Addr" },
       });
 
       fireEvent.click(screen.getByRole("button", { name: /register/i }));
 
       await screen.findByText("Address must be at least 5 characters");
       expect(axios.post).not.toHaveBeenCalled();
+    });
+
+    it("accepts address with exactly 5 characters (at minimum boundary)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your address"), {
+        target: { value: "Addr1" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("accepts address with 6 characters (above minimum)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(screen.getByPlaceholderText("Enter your address"), {
+        target: { value: "Addr12" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
     });
   });
 
@@ -450,7 +664,7 @@ describe("Register Component", () => {
       expect(axios.post).not.toHaveBeenCalled();
     });
 
-    it("shows error when answer is less than 3 characters", async () => {
+    it("shows error when answer is 2 characters (below minimum)", async () => {
       renderRegister();
 
       fillValidForm();
@@ -462,6 +676,44 @@ describe("Register Component", () => {
 
       await screen.findByText("Security answer must be at least 3 characters");
       expect(axios.post).not.toHaveBeenCalled();
+    });
+
+    it("accepts answer with exactly 3 characters (at minimum boundary)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(
+        screen.getByPlaceholderText("What is your favorite sport"),
+        { target: { value: "ABC" } }
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
+
+    it("accepts answer with 4 characters (above minimum)", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderRegister();
+      fillValidForm();
+
+      fireEvent.change(
+        screen.getByPlaceholderText("What is your favorite sport"),
+        { target: { value: "ABCD" } }
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: /register/i }));
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.success).toHaveBeenCalledWith(
+        "Register successful, please login"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
     });
   });
 
