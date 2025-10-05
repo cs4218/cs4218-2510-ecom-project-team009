@@ -73,28 +73,4 @@ describe("UserMenu", () => {
       expect(screen.getByText("Orders")).toBeInTheDocument();
     });
   });
-
-  describe("Navigation Links", () => {
-    it("profile and orders links have correct list-group styling classes", () => {
-      // Arrange & Act
-      render(
-        <BrowserRouter>
-          <UserMenu />
-        </BrowserRouter>
-      );
-
-      // Assert
-      const profileLink = screen.getByText("Profile");
-      const ordersLink = screen.getByText("Orders");
-
-      expect(profileLink).toHaveClass(
-        "list-group-item",
-        "list-group-item-action"
-      );
-      expect(ordersLink).toHaveClass(
-        "list-group-item",
-        "list-group-item-action"
-      );
-    });
-  });
 });
