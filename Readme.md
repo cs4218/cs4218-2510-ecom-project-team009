@@ -176,3 +176,52 @@ config/db.js
 - Authenticated user can still access auth pages so implemented public route guard
 
 ---
+
+### Rick Koh (A0255063J)
+
+#### Frontend:
+
+1. components/Form/CategoryForm.js
+2. components/Routes/AdminRoute.js
+3. components/Routes/Private.js
+4. components/UserMenu.js
+5. pages/admin/AdminOrders.js
+6. pages/admin/CreateCategory.js
+7. pages/admin/CreateProduct.js
+8. pages/admin/Products.js
+9. pages/admin/UpdateProduct.js
+10. pages/user/Dashboard.js
+
+#### Backend:
+
+1. models/productModel.js
+2. models/userModel.js
+
+#### Bug Fix:
+
+##### **AdminRoute.js**
+
+- Missing `try` and `catch` block in `authCheck` function as there could be network/axios errors
+
+##### **Private.js**
+
+- Missing `try` and `catch` block in `authCheck` function as there could be network/axios errors
+
+##### **CreateProduct.js**
+
+- Wrong toast message when creating product
+- Missing shipping field in FormData - user selections for shipping were not being saved to database, causing data loss
+
+##### **UpdateProduct.js**
+
+- Wrong toast message when updating product
+- Missing shipping field in FormData - shipping status changes were not persisted during product updates
+- Broken shipping dropdown value - type inconsistency between boolean from API (yes/no) and string dropdown values caused dropdown to malfunction after user interaction. Fixed by converting boolean to string on load for consistent type handling
+
+##### **AdminOrders.js**
+
+- Wrong timestamp field name - used `createAt` instead of `createdAt`, causing order dates to not display correctly
+
+##### **CreateCategory.js**
+
+- Wrong toast message when creating category
