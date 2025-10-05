@@ -55,7 +55,7 @@ const mockOrders = {
       _id: "order123",
       status: "Processing",
       buyer: { name: "John Doe" },
-      createAt: "2025-01-01T10:00:00Z",
+      createdAt: "2025-01-01T10:00:00Z",
       payment: { success: true },
       products: [
         {
@@ -76,7 +76,7 @@ const mockOrders = {
       _id: "order456",
       status: "Shipped",
       buyer: { name: "Jane Smith" },
-      createAt: "2025-01-02T12:00:00Z",
+      createdAt: "2025-01-02T12:00:00Z",
       payment: { success: false },
       products: [
         {
