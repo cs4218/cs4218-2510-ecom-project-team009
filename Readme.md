@@ -90,7 +90,7 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 
 ---
 
-Nicholas Chee(A0251980B)
+### Nicholas Chee (A0251980B)
 
 ### Frontend:
 
