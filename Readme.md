@@ -89,3 +89,26 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
   Uncommented `required: true` for the `name` field to enforce category name validation at the schema level.
 
 ---
+
+Nicholas Chee(A0251980B)
+
+### Frontend:
+
+pages/ProductDetails.js
+pages/CategoryProduct.js
+pages/Contact.js
+pages/Policy.js
+pages/About.js
+pages/Pagenotfound.js
+components/Footer.js
+components/Header.js
+components/Layout.js
+components/Spinner.js
+
+### Backend:
+
+controllers/productController.js
+models/productModel.js
+config/db.js
+
+---
