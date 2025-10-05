@@ -146,7 +146,7 @@ describe("CreateProduct Component", () => {
       });
 
       // Categories should not be set when success is false
-      const selects = document.querySelectorAll(".ant-select-selector");
+      const selects = screen.getAllByRole("combobox");
       expect(selects.length).toBeGreaterThan(0);
     });
 
@@ -241,8 +241,8 @@ describe("CreateProduct Component", () => {
         ).toBeInTheDocument();
       });
 
-      // Find the category select by its class
-      const selects = document.querySelectorAll(".ant-select-selector");
+      // Find the category select by its role
+      const selects = screen.getAllByRole("combobox");
       const categorySelect = selects[0]; // First Select is category
 
       fireEvent.mouseDown(categorySelect);
@@ -263,8 +263,8 @@ describe("CreateProduct Component", () => {
         ).toBeInTheDocument();
       });
 
-      // Find the shipping select by its class
-      const selects = document.querySelectorAll(".ant-select-selector");
+      // Find the shipping select by its role
+      const selects = screen.getAllByRole("combobox");
       const shippingSelect = selects[1]; // Second Select is shipping
 
       fireEvent.mouseDown(shippingSelect);
