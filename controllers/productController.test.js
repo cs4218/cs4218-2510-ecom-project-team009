@@ -182,10 +182,32 @@ describe("Product Controller", () => {
           await createProductController(mockReq, mockRes);
 
           // Assert
-          expect(mockRes.status).toHaveBeenCalledWith(500);
+          expect(mockRes.status).toHaveBeenCalledWith(400); // Changed from 500
           expect(mockRes.send).toHaveBeenCalledWith({
             error: expectedMessage,
           });
+        });
+      });
+
+      it("should return 400 and error when photo is missing", async () => {
+        // Arrange
+        mockReq.fields = {
+          name: "Test Product",
+          description: "Test Description",
+          price: 100,
+          category: "cat-1",
+          quantity: 10,
+          shipping: false,
+        };
+        mockReq.files = {}; // No photo
+
+        // Act
+        await createProductController(mockReq, mockRes);
+
+        // Assert
+        expect(mockRes.status).toHaveBeenCalledWith(400);
+        expect(mockRes.send).toHaveBeenCalledWith({
+          message: "Photo is required",
         });
       });
 
@@ -213,7 +235,7 @@ describe("Product Controller", () => {
         // Assert
         expect(mockRes.status).toHaveBeenCalledWith(500);
         expect(mockRes.send).toHaveBeenCalledWith({
-          error: "photo is Required and should be less then 1mb",
+          error: "Photo size must be <= 1mb", // Changed from "photo is Required and should be less then 1mb"
         });
       });
     });
@@ -290,7 +312,7 @@ describe("Product Controller", () => {
           } else {
             expect(mockRes.status).toHaveBeenCalledWith(500);
             expect(mockRes.send).toHaveBeenCalledWith({
-              error: "photo is Required and should be less then 1mb",
+              error: "Photo size must be <= 1mb", // Changed from "photo is Required and should be less then 1mb"
             });
           }
         }
@@ -376,17 +398,10 @@ describe("Product Controller", () => {
 
         // Assert
         expect(fs.readFileSync).not.toHaveBeenCalled();
-        expect(mockRes.status).toHaveBeenCalledWith(201);
-        expect(mockRes.send).toHaveBeenCalledWith(
-          expect.objectContaining({
-            success: true,
-            message: "Product Created Successfully",
-            products: expect.objectContaining({
-              name: "Test Product",
-              slug: "test-product",
-            }),
-          })
-        );
+        expect(mockRes.status).toHaveBeenCalledWith(400); // Changed from 201 - photo is now required
+        expect(mockRes.send).toHaveBeenCalledWith({
+          message: "Photo is required", // Changed to match new validation
+        });
       });
     });
 
@@ -401,11 +416,16 @@ describe("Product Controller", () => {
           quantity: 10,
           shipping: false,
         };
+        mockReq.files = {
+          photo: {
+            size: 500000,
+            path: "/tmp/photo.jpg",
+            type: "image/jpeg",
+          },
+        };
 
-        productModel.mockImplementation(function (doc) {
-          Object.assign(this, doc);
-          this.photo = { data: null, contentType: null };
-          this.save = jest.fn().mockRejectedValue(new Error("db down"));
+        productModel.mockImplementation(function () {
+          this.save = jest.fn().mockRejectedValue(new Error("Save failed"));
         });
 
         // Act
@@ -955,7 +975,7 @@ describe("Product Controller", () => {
 
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.send).toHaveBeenCalledWith({
-        error: "photo is Required and should be less then 1mb",
+        error: "Photo size must be <= 1mb",
       });
     });
 

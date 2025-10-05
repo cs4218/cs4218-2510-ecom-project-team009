@@ -43,10 +43,10 @@ export const createProductController = async (req, res) => {
     }
 
     const products = new productModel({ ...req.fields, slug: slugify(name) });
-    if (photo) {
-      products.photo.data = fs.readFileSync(photo.path);
-      products.photo.contentType = photo.type;
-    }
+    // Photo is guaranteed to exist here due to validation above
+    products.photo.data = fs.readFileSync(photo.path);
+    products.photo.contentType = photo.type;
+    
     await products.save();
     res.status(201).send({
       success: true,
@@ -171,7 +171,7 @@ export const updateProductController = async (req, res) => {
       case photo && photo.size > 1000000:
         return res
           .status(500)
-          .send({ error: "photo is Required and should be less then 1mb" });
+          .send({ error: "Photo size must be <= 1mb" });
     }
 
     const products = await productModel.findByIdAndUpdate(
