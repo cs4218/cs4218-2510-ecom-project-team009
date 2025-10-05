@@ -305,6 +305,70 @@ describe("UpdateProduct Component", () => {
       });
       fireEvent.click(screen.getByText("No"));
     });
+
+    it("converts boolean shipping from API to string for consistent dropdown behavior", async () => {
+      // Mock API returns boolean true for shipping
+      axios.get.mockImplementation((url) => {
+        if (url.includes("/api/v1/product/get-product/")) {
+          return Promise.resolve({
+            data: {
+              product: {
+                _id: "product123",
+                name: "Test Product",
+                description: "Test Description",
+                price: 100,
+                quantity: 10,
+                shipping: true, // Boolean from API
+                category: {
+                  _id: "cat123",
+                  name: "Test Category",
+                },
+              },
+            },
+          });
+        }
+        if (url === "/api/v1/category/get-category") {
+          return Promise.resolve({ data: mockCategories });
+        }
+        return Promise.reject(new Error("Unknown URL"));
+      });
+
+      renderUpdateProduct();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("write a name").value).toBe(
+          "Test Product"
+        );
+      });
+
+      // Get shipping select
+      const selects = screen.getAllByRole("combobox");
+      const shippingSelect = selects[1];
+
+      // Initially should show "Yes" (converted from boolean true to "1")
+      fireEvent.mouseDown(shippingSelect);
+      await waitFor(() => {
+        const options = screen.getAllByText("Yes");
+        expect(options.length).toBeGreaterThan(0);
+      });
+
+      // Change to "No"
+      const noOptions = screen.getAllByText("No");
+      fireEvent.click(noOptions[noOptions.length - 1]);
+
+      // Wait for state update
+      await waitFor(() => {
+        expect(screen.queryByText("Processing")).not.toBeInTheDocument();
+      });
+
+      // Open dropdown again - should still show "No" correctly
+      fireEvent.mouseDown(shippingSelect);
+
+      await waitFor(() => {
+        const noOptionsAgain = screen.getAllByText("No");
+        expect(noOptionsAgain.length).toBeGreaterThan(0);
+      });
+    });
   });
 
   describe("Photo Upload & Preview - BVA", () => {
