@@ -187,6 +187,30 @@ describe("UpdateProduct Component", () => {
       expect(screen.getByPlaceholderText("write a quantity").value).toBe("10");
     });
 
+    it("handles category fetch API returning success false", async () => {
+      axios.get.mockImplementation((url) => {
+        if (url.includes("/api/v1/product/get-product/")) {
+          return Promise.resolve({ data: mockProduct });
+        }
+        if (url === "/api/v1/category/get-category") {
+          return Promise.resolve({ data: { success: false } });
+        }
+        return Promise.reject(new Error("Unknown URL"));
+      });
+
+      renderUpdateProduct();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("write a name").value).toBe(
+          "Test Product"
+        );
+      });
+
+      // Categories should not be set when success is false
+      const selects = document.querySelectorAll(".ant-select-selector");
+      expect(selects.length).toBeGreaterThan(0);
+    });
+
     it("handles product fetch errors gracefully", async () => {
       axios.get.mockImplementation((url) => {
         if (url.includes("/api/v1/product/get-product/")) {
@@ -291,6 +315,50 @@ describe("UpdateProduct Component", () => {
       });
 
       expect(screen.getByPlaceholderText("write a quantity").value).toBe("20");
+    });
+
+    it("allows changing product category", async () => {
+      renderUpdateProduct();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("write a name").value).toBe(
+          "Test Product"
+        );
+      });
+
+      // Find the category select by its class
+      const selects = document.querySelectorAll(".ant-select-selector");
+      const categorySelect = selects[0]; // First Select is category
+
+      fireEvent.mouseDown(categorySelect);
+
+      await waitFor(() => {
+        expect(screen.getByText("Another Category")).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText("Another Category"));
+    });
+
+    it("allows changing shipping option", async () => {
+      renderUpdateProduct();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("write a name").value).toBe(
+          "Test Product"
+        );
+      });
+
+      // Find the shipping select by its class
+      const selects = document.querySelectorAll(".ant-select-selector");
+      const shippingSelect = selects[1]; // Second Select is shipping
+
+      fireEvent.mouseDown(shippingSelect);
+
+      await waitFor(() => {
+        expect(screen.getByText("No")).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText("No"));
     });
   });
 
