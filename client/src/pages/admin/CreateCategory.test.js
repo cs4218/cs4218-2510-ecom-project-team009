@@ -134,13 +134,28 @@ describe("CreateCategory Component", () => {
     });
   });
 
-  describe("Data Fetching on Mount", () => {
+  describe("Data Fetching on Mount - Boundary Value Analysis & CFG", () => {
     it("fetches all categories on mount", async () => {
       renderCreateCategory();
 
       await waitFor(() => {
         expect(axios.get).toHaveBeenCalledWith("/api/v1/category/get-category");
       });
+    });
+
+    it("renders single category correctly (1 category - boundary)", async () => {
+      axios.get.mockResolvedValue({
+        data: { success: true, category: [{ _id: "cat1", name: "Electronics" }] },
+      });
+
+      renderCreateCategory();
+
+      await waitFor(() => {
+        expect(screen.getByText("Electronics")).toBeInTheDocument();
+      });
+
+      expect(screen.getAllByRole("button", { name: /edit/i })).toHaveLength(1);
+      expect(screen.getAllByRole("button", { name: /delete/i })).toHaveLength(1);
     });
 
     it("handles category fetch API returning success false", async () => {
@@ -171,26 +186,8 @@ describe("CreateCategory Component", () => {
     });
   });
 
-  describe("Create Category", () => {
-    it("allows typing in category name input", async () => {
-      renderCreateCategory();
-
-      await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText("Enter new category")
-        ).toBeInTheDocument();
-      });
-
-      fireEvent.change(screen.getByPlaceholderText("Enter new category"), {
-        target: { value: "Books" },
-      });
-
-      expect(screen.getByPlaceholderText("Enter new category").value).toBe(
-        "Books"
-      );
-    });
-
-    it("creates category successfully and shows success toast", async () => {
+  describe("Create Category - Strategic Grouping & CFG", () => {
+    it("creates category successfully with full workflow", async () => {
       axios.post.mockResolvedValueOnce({
         data: { success: true },
       });
@@ -203,47 +200,29 @@ describe("CreateCategory Component", () => {
         ).toBeInTheDocument();
       });
 
-      fireEvent.change(screen.getByPlaceholderText("Enter new category"), {
+      // Arrange + Act: Type in input (verify input typing works)
+      const input = screen.getByPlaceholderText("Enter new category");
+      fireEvent.change(input, {
         target: { value: "Books" },
       });
+      expect(input.value).toBe("Books");
 
+      // Act: Submit form
       fireEvent.click(screen.getAllByRole("button", { name: /submit/i })[0]);
 
+      // Assert: Verify API call, success toast, and list refresh
       await waitFor(() => {
         expect(axios.post).toHaveBeenCalledWith(
           "/api/v1/category/create-category",
           { name: "Books" }
         );
       });
-
       expect(toast.success).toHaveBeenCalledWith("Books is created");
+      expect(axios.get).toHaveBeenCalledTimes(2); // Initial mount + after create
     });
 
-    it("refreshes category list after creation", async () => {
-      axios.post.mockResolvedValueOnce({
-        data: { success: true },
-      });
-
-      renderCreateCategory();
-
-      await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText("Enter new category")
-        ).toBeInTheDocument();
-      });
-
-      fireEvent.change(screen.getByPlaceholderText("Enter new category"), {
-        target: { value: "Books" },
-      });
-
-      fireEvent.click(screen.getAllByRole("button", { name: /submit/i })[0]);
-
-      await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledTimes(2); // Initial mount + after create
-      });
-    });
-
-    it("shows error toast when creation fails", async () => {
+    it("handles create errors (API failure & network errors)", async () => {
+      // Test 1: API returns success: false
       axios.post.mockResolvedValueOnce({
         data: { success: false, message: "Category already exists" },
       });
@@ -256,33 +235,33 @@ describe("CreateCategory Component", () => {
         ).toBeInTheDocument();
       });
 
-      fireEvent.change(screen.getByPlaceholderText("Enter new category"), {
+      const input1 = screen.getByPlaceholderText("Enter new category");
+      fireEvent.change(input1, {
         target: { value: "Electronics" },
       });
-
       fireEvent.click(screen.getAllByRole("button", { name: /submit/i })[0]);
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith("Category already exists");
       });
-    });
 
-    it("handles network errors gracefully", async () => {
+      // Test 2: Network error (different CFG path)
+      jest.clearAllMocks();
+      axios.get.mockResolvedValue({ data: mockCategories });
       axios.post.mockRejectedValueOnce(new Error("Network error"));
 
       renderCreateCategory();
 
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText("Enter new category")
-        ).toBeInTheDocument();
+        expect(screen.getByText("Electronics")).toBeInTheDocument();
       });
 
-      fireEvent.change(screen.getByPlaceholderText("Enter new category"), {
+      const inputs = screen.getAllByPlaceholderText("Enter new category");
+      fireEvent.change(inputs[inputs.length - 1], {
         target: { value: "Books" },
       });
-
-      fireEvent.click(screen.getAllByRole("button", { name: /submit/i })[0]);
+      const submitButtons = screen.getAllByRole("button", { name: /submit/i });
+      fireEvent.click(submitButtons[submitButtons.length - 1]);
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith(
@@ -292,64 +271,8 @@ describe("CreateCategory Component", () => {
     });
   });
 
-  describe("Update Category", () => {
-    it("opens modal when Edit button clicked", async () => {
-      renderCreateCategory();
-
-      await waitFor(() => {
-        expect(screen.getByText("Electronics")).toBeInTheDocument();
-      });
-
-      const editButtons = screen.getAllByRole("button", { name: /edit/i });
-      fireEvent.click(editButtons[0]);
-
-      await waitFor(() => {
-        const modals = screen.getAllByRole("dialog");
-        expect(modals.length).toBeGreaterThan(0);
-      });
-    });
-
-    it("pre-populates modal form with category name", async () => {
-      renderCreateCategory();
-
-      await waitFor(() => {
-        expect(screen.getByText("Electronics")).toBeInTheDocument();
-      });
-
-      const editButtons = screen.getAllByRole("button", { name: /edit/i });
-      fireEvent.click(editButtons[0]);
-
-      await waitFor(() => {
-        const inputs = screen.getAllByPlaceholderText("Enter new category");
-        // Second input should be in modal with pre-populated value
-        expect(inputs[1].value).toBe("Electronics");
-      });
-    });
-
-    it("allows changing category name in modal", async () => {
-      renderCreateCategory();
-
-      await waitFor(() => {
-        expect(screen.getByText("Electronics")).toBeInTheDocument();
-      });
-
-      const editButtons = screen.getAllByRole("button", { name: /edit/i });
-      fireEvent.click(editButtons[0]);
-
-      await waitFor(() => {
-        const inputs = screen.getAllByPlaceholderText("Enter new category");
-        expect(inputs[1].value).toBe("Electronics");
-      });
-
-      const inputs = screen.getAllByPlaceholderText("Enter new category");
-      fireEvent.change(inputs[1], {
-        target: { value: "Updated Electronics" },
-      });
-
-      expect(inputs[1].value).toBe("Updated Electronics");
-    });
-
-    it("updates category successfully and shows success toast", async () => {
+  describe("Update Category - Strategic Grouping & CFG", () => {
+    it("updates category successfully with full workflow", async () => {
       axios.put.mockResolvedValueOnce({
         data: { success: true },
       });
@@ -360,101 +283,42 @@ describe("CreateCategory Component", () => {
         expect(screen.getByText("Electronics")).toBeInTheDocument();
       });
 
+      // Act: Open modal (verify modal opens)
       const editButtons = screen.getAllByRole("button", { name: /edit/i });
       fireEvent.click(editButtons[0]);
 
       await waitFor(() => {
-        const inputs = screen.getAllByPlaceholderText("Enter new category");
-        expect(inputs[1].value).toBe("Electronics");
+        const modals = screen.getAllByRole("dialog");
+        expect(modals.length).toBeGreaterThan(0);
       });
 
+      // Arrange + Act: Verify pre-population & change value
       const inputs = screen.getAllByPlaceholderText("Enter new category");
+      expect(inputs[1].value).toBe("Electronics"); // Pre-populated value verified
       fireEvent.change(inputs[1], {
         target: { value: "Updated Electronics" },
       });
+      expect(inputs[1].value).toBe("Updated Electronics"); // Input change verified
 
+      // Act: Submit update
       const submitButtons = screen.getAllByRole("button", { name: /submit/i });
-      fireEvent.click(submitButtons[1]); // Modal submit button
+      fireEvent.click(submitButtons[1]);
 
+      // Assert: Verify API call, success toast, and list refresh
       await waitFor(() => {
         expect(axios.put).toHaveBeenCalledWith(
           "/api/v1/category/update-category/cat123",
           { name: "Updated Electronics" }
         );
       });
-
       expect(toast.success).toHaveBeenCalledWith(
         "Updated Electronics is updated"
       );
+      expect(axios.get).toHaveBeenCalledTimes(2); // Initial mount + after update
     });
 
-    it("closes modal after successful update", async () => {
-      axios.put.mockResolvedValueOnce({
-        data: { success: true },
-      });
-
-      renderCreateCategory();
-
-      await waitFor(() => {
-        expect(screen.getByText("Electronics")).toBeInTheDocument();
-      });
-
-      const editButtons = screen.getAllByRole("button", { name: /edit/i });
-      fireEvent.click(editButtons[0]);
-
-      await waitFor(() => {
-        const modals = screen.getAllByRole("dialog");
-        expect(modals.length).toBeGreaterThan(0);
-      });
-
-      const inputs = screen.getAllByPlaceholderText("Enter new category");
-      fireEvent.change(inputs[1], {
-        target: { value: "Updated Electronics" },
-      });
-
-      const submitButtons = screen.getAllByRole("button", { name: /submit/i });
-      fireEvent.click(submitButtons[1]);
-
-      await waitFor(() => {
-        expect(toast.success).toHaveBeenCalled();
-      });
-
-      // Modal should be closed (state set to false)
-    });
-
-    it("refreshes category list after update", async () => {
-      axios.put.mockResolvedValueOnce({
-        data: { success: true },
-      });
-
-      renderCreateCategory();
-
-      await waitFor(() => {
-        expect(screen.getByText("Electronics")).toBeInTheDocument();
-      });
-
-      const editButtons = screen.getAllByRole("button", { name: /edit/i });
-      fireEvent.click(editButtons[0]);
-
-      await waitFor(() => {
-        const inputs = screen.getAllByPlaceholderText("Enter new category");
-        expect(inputs[1].value).toBe("Electronics");
-      });
-
-      const inputs = screen.getAllByPlaceholderText("Enter new category");
-      fireEvent.change(inputs[1], {
-        target: { value: "Updated Electronics" },
-      });
-
-      const submitButtons = screen.getAllByRole("button", { name: /submit/i });
-      fireEvent.click(submitButtons[1]);
-
-      await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledTimes(2); // Initial mount + after update
-      });
-    });
-
-    it("shows error toast when update fails", async () => {
+    it("handles update errors (API failure & network errors)", async () => {
+      // Test 1: API returns success: false
       axios.put.mockResolvedValueOnce({
         data: { success: false, message: "Update failed" },
       });
@@ -484,9 +348,10 @@ describe("CreateCategory Component", () => {
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith("Update failed");
       });
-    });
 
-    it("handles network errors gracefully", async () => {
+      // Test 2: Network error (different CFG path)
+      jest.clearAllMocks();
+      axios.get.mockResolvedValue({ data: mockCategories });
       axios.put.mockRejectedValueOnce(new Error("Network error"));
 
       renderCreateCategory();
@@ -495,21 +360,21 @@ describe("CreateCategory Component", () => {
         expect(screen.getByText("Electronics")).toBeInTheDocument();
       });
 
-      const editButtons = screen.getAllByRole("button", { name: /edit/i });
-      fireEvent.click(editButtons[0]);
+      const editButtons2 = screen.getAllByRole("button", { name: /edit/i });
+      fireEvent.click(editButtons2[0]);
 
       await waitFor(() => {
-        const inputs = screen.getAllByPlaceholderText("Enter new category");
-        expect(inputs[1].value).toBe("Electronics");
+        const inputs2 = screen.getAllByPlaceholderText("Enter new category");
+        expect(inputs2[1].value).toBe("Electronics");
       });
 
-      const inputs = screen.getAllByPlaceholderText("Enter new category");
-      fireEvent.change(inputs[1], {
+      const inputs2 = screen.getAllByPlaceholderText("Enter new category");
+      fireEvent.change(inputs2[1], {
         target: { value: "Updated Electronics" },
       });
 
-      const submitButtons = screen.getAllByRole("button", { name: /submit/i });
-      fireEvent.click(submitButtons[1]);
+      const submitButtons2 = screen.getAllByRole("button", { name: /submit/i });
+      fireEvent.click(submitButtons2[1]);
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith("Somtihing went wrong");
@@ -541,8 +406,8 @@ describe("CreateCategory Component", () => {
     });
   });
 
-  describe("Delete Category", () => {
-    it("deletes category successfully and shows success toast", async () => {
+  describe("Delete Category - Strategic Grouping & CFG", () => {
+    it("deletes category successfully and refreshes list", async () => {
       axios.delete.mockResolvedValueOnce({
         data: { success: true },
       });
@@ -553,38 +418,22 @@ describe("CreateCategory Component", () => {
         expect(screen.getByText("Electronics")).toBeInTheDocument();
       });
 
+      // Act: Click delete button
       const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
       fireEvent.click(deleteButtons[0]);
 
+      // Assert: Verify API call, success toast, and list refresh
       await waitFor(() => {
         expect(axios.delete).toHaveBeenCalledWith(
           "/api/v1/category/delete-category/cat123"
         );
       });
-
       expect(toast.success).toHaveBeenCalledWith("category is deleted");
+      expect(axios.get).toHaveBeenCalledTimes(2); // Initial mount + after delete
     });
 
-    it("refreshes category list after deletion", async () => {
-      axios.delete.mockResolvedValueOnce({
-        data: { success: true },
-      });
-
-      renderCreateCategory();
-
-      await waitFor(() => {
-        expect(screen.getByText("Electronics")).toBeInTheDocument();
-      });
-
-      const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
-      fireEvent.click(deleteButtons[0]);
-
-      await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledTimes(2); // Initial mount + after delete
-      });
-    });
-
-    it("shows error toast when deletion fails", async () => {
+    it("handles delete errors (API failure & network errors)", async () => {
+      // Test 1: API returns success: false
       axios.delete.mockResolvedValueOnce({
         data: { success: false, message: "Cannot delete category" },
       });
@@ -601,9 +450,10 @@ describe("CreateCategory Component", () => {
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith("Cannot delete category");
       });
-    });
 
-    it("handles network errors gracefully", async () => {
+      // Test 2: Network error (different CFG path)
+      jest.clearAllMocks();
+      axios.get.mockResolvedValue({ data: mockCategories });
       axios.delete.mockRejectedValueOnce(new Error("Network error"));
 
       renderCreateCategory();
@@ -612,8 +462,8 @@ describe("CreateCategory Component", () => {
         expect(screen.getByText("Electronics")).toBeInTheDocument();
       });
 
-      const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
-      fireEvent.click(deleteButtons[0]);
+      const deleteButtons2 = screen.getAllByRole("button", { name: /delete/i });
+      fireEvent.click(deleteButtons2[0]);
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith("Somtihing went wrong");
