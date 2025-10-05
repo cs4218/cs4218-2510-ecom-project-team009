@@ -352,7 +352,9 @@ describe("UpdateProduct Component", () => {
   });
 
   describe("Update Product - Equivalence Partitioning", () => {
-    it("updates product successfully with FormData and navigates", async () => {
+    it("updates product successfully with all FormData fields including shipping", async () => {
+      const appendSpy = jest.spyOn(FormData.prototype, "append");
+
       renderUpdateProduct();
 
       await waitFor(() => {
@@ -361,12 +363,13 @@ describe("UpdateProduct Component", () => {
         );
       });
 
-      // Add new photo to test photo inclusion in FormData
-      const file = new File(["photo"], "new-photo.jpg", {
-        type: "image/jpeg",
+      // Change shipping status
+      const selects = screen.getAllByRole("combobox");
+      fireEvent.mouseDown(selects[1]);
+      await waitFor(() => {
+        expect(screen.getByText("No")).toBeInTheDocument();
       });
-      const input = screen.getByLabelText(/upload photo/i);
-      fireEvent.change(input, { target: { files: [file] } });
+      fireEvent.click(screen.getByText("No"));
 
       // Change name to test form data
       fireEvent.change(screen.getByPlaceholderText("write a name"), {
@@ -387,11 +390,21 @@ describe("UpdateProduct Component", () => {
         );
       });
 
+      // Verify all required fields including shipping
+      expect(appendSpy).toHaveBeenCalledWith("name", "Updated Product");
+      expect(appendSpy).toHaveBeenCalledWith("description", "Test Description");
+      expect(appendSpy).toHaveBeenCalledWith("price", 100);
+      expect(appendSpy).toHaveBeenCalledWith("quantity", 10);
+      expect(appendSpy).toHaveBeenCalledWith("category", "cat123");
+      expect(appendSpy).toHaveBeenCalledWith("shipping", "0");
+
       // Verify success toast and navigation
       expect(toast.success).toHaveBeenCalledWith(
         "Product Updated Successfully"
       );
       expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
+
+      appendSpy.mockRestore();
     });
 
     it("shows error toast when API returns success false", async () => {
