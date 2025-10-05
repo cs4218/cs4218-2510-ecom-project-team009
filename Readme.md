@@ -117,19 +117,19 @@ config/db.js
 
 ### Frontend:
 
-context/auth.js
-pages/Auth/Register.js
-pages/Auth/Login.js
-components/AdminMenu.js
-pages/AdminDashboard.js
-pages/Auth/ForgotPassword.js
-components/Route/Public.js
+1. context/auth.js
+2. pages/Auth/Register.js
+3. pages/Auth/Login.js
+4. components/AdminMenu.js
+5. pages/AdminDashboard.js
+6. pages/Auth/ForgotPassword.js
+7. components/Route/Public.js
 
 ### Backend:
 
-middlewares/authMiddleware.js
-helpers/authHelper.js
-controllers/authController.js
+1. middlewares/authMiddleware.js
+2. helpers/authHelper.js
+3. controllers/authController.js
 
 #### Bug Fix:
 
