@@ -72,6 +72,22 @@ const renderCreateProduct = () => {
   );
 };
 
+// Helper function to fill product form fields
+const fillProductForm = () => {
+  fireEvent.change(screen.getByPlaceholderText("write a name"), {
+    target: { value: "Test Product" },
+  });
+  fireEvent.change(screen.getByPlaceholderText("write a description"), {
+    target: { value: "Test Description" },
+  });
+  fireEvent.change(screen.getByPlaceholderText("write a Price"), {
+    target: { value: "100" },
+  });
+  fireEvent.change(screen.getByPlaceholderText("write a quantity"), {
+    target: { value: "10" },
+  });
+};
+
 describe("CreateProduct Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -164,7 +180,7 @@ describe("CreateProduct Component", () => {
   });
 
   describe("User Input", () => {
-    it("allows typing in name field", async () => {
+    it("allows typing in all text input fields - pairwise testing", async () => {
       renderCreateProduct();
 
       await waitFor(() => {
@@ -173,66 +189,36 @@ describe("CreateProduct Component", () => {
         ).toBeInTheDocument();
       });
 
+      // Test name input
       fireEvent.change(screen.getByPlaceholderText("write a name"), {
         target: { value: "Test Product" },
       });
-
       expect(screen.getByPlaceholderText("write a name").value).toBe(
         "Test Product"
       );
-    });
 
-    it("allows typing in description field", async () => {
-      renderCreateProduct();
-
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /create product/i })
-        ).toBeInTheDocument();
-      });
-
+      // Test description input
       fireEvent.change(screen.getByPlaceholderText("write a description"), {
         target: { value: "Test Description" },
       });
-
       expect(screen.getByPlaceholderText("write a description").value).toBe(
         "Test Description"
       );
-    });
 
-    it("allows typing in price field", async () => {
-      renderCreateProduct();
-
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /create product/i })
-        ).toBeInTheDocument();
-      });
-
+      // Test price input
       fireEvent.change(screen.getByPlaceholderText("write a Price"), {
         target: { value: "100" },
       });
-
       expect(screen.getByPlaceholderText("write a Price").value).toBe("100");
-    });
 
-    it("allows typing in quantity field", async () => {
-      renderCreateProduct();
-
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /create product/i })
-        ).toBeInTheDocument();
-      });
-
+      // Test quantity input
       fireEvent.change(screen.getByPlaceholderText("write a quantity"), {
         target: { value: "10" },
       });
-
       expect(screen.getByPlaceholderText("write a quantity").value).toBe("10");
     });
 
-    it("allows selecting a category", async () => {
+    it("allows selecting category and shipping options", async () => {
       renderCreateProduct();
 
       await waitFor(() => {
@@ -241,44 +227,26 @@ describe("CreateProduct Component", () => {
         ).toBeInTheDocument();
       });
 
-      // Find the category select by its role
       const selects = screen.getAllByRole("combobox");
-      const categorySelect = selects[0]; // First Select is category
 
-      fireEvent.mouseDown(categorySelect);
-
+      // Test category select (first dropdown)
+      fireEvent.mouseDown(selects[0]);
       await waitFor(() => {
         expect(screen.getByText("Test Category")).toBeInTheDocument();
       });
-
       fireEvent.click(screen.getByText("Test Category"));
-    });
 
-    it("allows selecting shipping option", async () => {
-      renderCreateProduct();
-
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /create product/i })
-        ).toBeInTheDocument();
-      });
-
-      // Find the shipping select by its role
-      const selects = screen.getAllByRole("combobox");
-      const shippingSelect = selects[1]; // Second Select is shipping
-
-      fireEvent.mouseDown(shippingSelect);
-
+      // Test shipping select (second dropdown)
+      fireEvent.mouseDown(selects[1]);
       await waitFor(() => {
         expect(screen.getByText("Yes")).toBeInTheDocument();
       });
-
       fireEvent.click(screen.getByText("Yes"));
     });
   });
 
   describe("Photo Upload", () => {
-    it("displays photo filename when file selected", async () => {
+    it("displays photo filename and preview when file selected - BVA boundary (1 file)", async () => {
       renderCreateProduct();
 
       await waitFor(() => {
@@ -297,33 +265,13 @@ describe("CreateProduct Component", () => {
       await waitFor(() => {
         expect(screen.getByText("test-photo.jpg")).toBeInTheDocument();
       });
-    });
 
-    it("shows photo preview when file selected", async () => {
-      renderCreateProduct();
-
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /create product/i })
-        ).toBeInTheDocument();
-      });
-
-      const file = new File(["photo"], "test-photo.jpg", {
-        type: "image/jpeg",
-      });
-      const input = screen.getByLabelText(/upload photo/i);
-
-      fireEvent.change(input, { target: { files: [file] } });
-
-      await waitFor(() => {
-        expect(URL.createObjectURL).toHaveBeenCalledWith(file);
-      });
-
+      expect(URL.createObjectURL).toHaveBeenCalledWith(file);
       const image = screen.getByAltText("product_photo");
       expect(image).toHaveAttribute("src", "mock-photo-url");
     });
 
-    it("does not show photo preview when no file selected", async () => {
+    it("does not show photo preview when no file selected - BVA boundary (0 files)", async () => {
       renderCreateProduct();
 
       await waitFor(() => {
@@ -346,18 +294,7 @@ describe("CreateProduct Component", () => {
         ).toBeInTheDocument();
       });
 
-      fireEvent.change(screen.getByPlaceholderText("write a name"), {
-        target: { value: "Test Product" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a description"), {
-        target: { value: "Test Description" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a Price"), {
-        target: { value: "100" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a quantity"), {
-        target: { value: "10" },
-      });
+      fillProductForm();
 
       axios.post.mockResolvedValueOnce({
         data: { success: true },
@@ -388,18 +325,7 @@ describe("CreateProduct Component", () => {
       const input = screen.getByLabelText(/upload photo/i);
 
       fireEvent.change(input, { target: { files: [file] } });
-      fireEvent.change(screen.getByPlaceholderText("write a name"), {
-        target: { value: "Test Product" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a description"), {
-        target: { value: "Test Description" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a Price"), {
-        target: { value: "100" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a quantity"), {
-        target: { value: "10" },
-      });
+      fillProductForm();
 
       axios.post.mockResolvedValueOnce({
         data: { success: true },
@@ -421,18 +347,7 @@ describe("CreateProduct Component", () => {
         ).toBeInTheDocument();
       });
 
-      fireEvent.change(screen.getByPlaceholderText("write a name"), {
-        target: { value: "Test Product" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a description"), {
-        target: { value: "Test Description" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a Price"), {
-        target: { value: "100" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a quantity"), {
-        target: { value: "10" },
-      });
+      fillProductForm();
 
       axios.post.mockResolvedValueOnce({
         data: { success: true },
@@ -457,18 +372,7 @@ describe("CreateProduct Component", () => {
         ).toBeInTheDocument();
       });
 
-      fireEvent.change(screen.getByPlaceholderText("write a name"), {
-        target: { value: "Test Product" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a description"), {
-        target: { value: "Test Description" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a Price"), {
-        target: { value: "100" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a quantity"), {
-        target: { value: "10" },
-      });
+      fillProductForm();
 
       axios.post.mockResolvedValueOnce({
         data: { success: false, message: "Product creation failed" },
@@ -491,18 +395,7 @@ describe("CreateProduct Component", () => {
         ).toBeInTheDocument();
       });
 
-      fireEvent.change(screen.getByPlaceholderText("write a name"), {
-        target: { value: "Test Product" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a description"), {
-        target: { value: "Test Description" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a Price"), {
-        target: { value: "100" },
-      });
-      fireEvent.change(screen.getByPlaceholderText("write a quantity"), {
-        target: { value: "10" },
-      });
+      fillProductForm();
 
       axios.post.mockRejectedValueOnce(new Error("Network error"));
 
