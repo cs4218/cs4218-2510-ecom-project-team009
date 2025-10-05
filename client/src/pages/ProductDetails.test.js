@@ -4,9 +4,11 @@ import { MemoryRouter } from "react-router-dom";
 import axios from "axios";
 import ProductDetails from "./ProductDetails";
 import "@testing-library/jest-dom/extend-expect";
+import toast from "react-hot-toast";
 
 // Mock dependencies
 jest.mock("axios");
+jest.mock("react-hot-toast");
 
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -22,8 +24,9 @@ jest.mock("../context/auth", () => ({
   useAuth: () => [{ user: null, token: "" }, jest.fn()],
 }));
 
+const mockSetCart = jest.fn();
 jest.mock("../context/cart", () => ({
-  useCart: () => [[], jest.fn()],
+  useCart: () => [[], mockSetCart],
 }));
 
 jest.mock("../hooks/useCategory", () => ({
@@ -47,6 +50,15 @@ window.matchMedia =
       removeListener: function () {},
     };
   };
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  clear: jest.fn(),
+  removeItem: jest.fn(),
+};
+global.localStorage = localStorageMock;
 
 describe("ProductDetails Component - Comprehensive Testing", () => {
   const mockProduct = {
@@ -80,6 +92,11 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSetCart.mockClear();
+    localStorageMock.setItem.mockClear();
+    localStorageMock.getItem.mockClear();
+    toast.success.mockClear();
+    
     useParams.mockReturnValue({ slug: "laptop" });
 
     axios.get.mockImplementation((url) => {
@@ -610,8 +627,54 @@ describe("ProductDetails Component - Comprehensive Testing", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText("ADD TO CART")).toBeInTheDocument();
+        const addToCartButtons = screen.getAllByText("ADD TO CART");
+        expect(addToCartButtons.length).toBeGreaterThan(0);
+        expect(addToCartButtons[0]).toBeInTheDocument();
       });
+    });
+
+    it("should add related product to cart when ADD TO CART is clicked", async () => {
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("Mouse")).toBeInTheDocument();
+      });
+
+      await act(async () => {
+        const addToCartButtons = screen.getAllByText("ADD TO CART");
+        fireEvent.click(addToCartButtons[1]); // First related product button
+      });
+
+      expect(mockSetCart).toHaveBeenCalledWith([mockRelatedProducts[0]]);
+      expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
+    });
+
+    it("should add second related product to cart when its ADD TO CART is clicked", async () => {
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <ProductDetails />
+          </MemoryRouter>
+        );
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("Keyboard")).toBeInTheDocument();
+      });
+
+      await act(async () => {
+        const addToCartButtons = screen.getAllByText("ADD TO CART");
+        fireEvent.click(addToCartButtons[2]); // Second related product button
+      });
+
+      expect(mockSetCart).toHaveBeenCalledWith([mockRelatedProducts[1]]);
+      expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
     });
   });
 
@@ -802,6 +865,11 @@ describe("ProductDetails Component - Additional Coverage", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSetCart.mockClear();
+    localStorageMock.setItem.mockClear();
+    localStorageMock.getItem.mockClear();
+    toast.success.mockClear();
+    
     useParams.mockReturnValue({ slug: "laptop" });
 
     axios.get.mockImplementation((url) => {
@@ -1298,15 +1366,16 @@ describe("ProductDetails Component - Additional Coverage", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText("ADD TO CART")).toBeInTheDocument();
+        const addToCartButtons = screen.getAllByText("ADD TO CART");
+        expect(addToCartButtons[0]).toBeInTheDocument();
       });
 
       await act(async () => {
-        const addToCartButton = screen.getByText("ADD TO CART");
-        fireEvent.click(addToCartButton);
+        const addToCartButtons = screen.getAllByText("ADD TO CART");
+        fireEvent.click(addToCartButtons[0]);
       });
 
-      // Verify navigate was not called (button has no onClick handler in current implementation)
+      // Verify navigate was not called
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
