@@ -11,7 +11,7 @@ const Orders = () => {
   const getOrders = async () => {
     try {
       const { data } = await axios.get("/api/v1/auth/orders");
-      setOrders(data);
+      setOrders(data.orders);
     } catch (error) {
       console.log(error);
     }
@@ -31,7 +31,7 @@ const Orders = () => {
             <h1 className="text-center">All Orders</h1>
             {orders?.map((o, i) => {
               return (
-                <div className="border shadow">
+                <div data-testid="order-status-container" className="border shadow" key={o._id}>
                   <table className="table">
                     <thead>
                       <tr>
@@ -50,11 +50,11 @@ const Orders = () => {
                         <td>{o?.buyer?.name}</td>
                         <td>{moment(o?.createAt).fromNow()}</td>
                         <td>{o?.payment.success ? "Success" : "Failed"}</td>
-                        <td>{o?.products?.length}</td>
+                        <td data-testid="order-quantity">{o?.products?.length}</td>
                       </tr>
                     </tbody>
                   </table>
-                  <div className="container">
+                  <div data-testid="order-products-container" className="container">
                     {o?.products?.map((p, i) => (
                       <div className="row mb-2 p-3 card flex-row" key={p._id}>
                         <div className="col-md-4">

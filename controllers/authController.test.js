@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import { mock } from "node:test";
 await jest.unstable_mockModule("../helpers/authHelper.js", () => ({
   hashPassword: jest.fn(async () => "hashed"),
   comparePassword: jest.fn(),
@@ -242,11 +243,11 @@ describe("Auth Controller", () => {
         it(`should return an error if the ${missingField} is not provided`, async () => {
           mockReq.body = Array.isArray(missingField)
             ? Object.fromEntries(
-                missingField.map((field) => [field, undefined])
-              )
+              missingField.map((field) => [field, undefined])
+            )
             : {
-                [missingField]: undefined,
-              };
+              [missingField]: undefined,
+            };
 
           await loginController(mockReq, mockRes);
 
@@ -504,6 +505,9 @@ describe("Auth Controller", () => {
         phone: "1234567890",
         address: "123 Street",
       };
+
+      mockReq.user = { _id: "u1" };
+
       userModel.findById = jest.fn().mockResolvedValue({
         _id: "u1",
         name: "JM",
@@ -514,50 +518,21 @@ describe("Auth Controller", () => {
       userModel.findByIdAndUpdate = jest.fn();
     });
 
-    it("returns validation error when new password is shorter than 6 chars", async () => {
-      mockReq.body.password = "123";
-      mockReq.user = { _id: "u1" };
+    //Boundary value analysis: 0 <= pw, 1 <= pw <= 6, pw >= 7
+    //Boundary values: 0, 1, 2, 5, 6, 7, 8
+    it("updates profile excluding password when no password is input", async () => {
+      mockReq.body.address = "different address";
+      const updatedDoc = { ...mockReq.body, password: "stored-hash" };
+      delete mockReq.body.password;
 
-      await updateProfileController(mockReq, mockRes);
-
-      expect(userModel.findById).toHaveBeenCalledWith("u1");
-      expect(hashPassword).not.toHaveBeenCalled();
-      expect(userModel.findByIdAndUpdate).not.toHaveBeenCalled();
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: "Password is required and 6 character long",
-      });
-    });
-
-    it("hashes new password and updates profile when valid payload is provided", async () => {
-      hashPassword.mockResolvedValueOnce("hashed-new-password");
-      mockReq.body = {
-        name: "JM",
-        password: "newpassword123",
-        phone: "1112223333",
-        address: "456 Avenue",
-      };
-      mockReq.user = { _id: "u1" };
-
-      const updatedDoc = {
-        _id: "u1",
-        name: "JM",
-        password: "hashed-new-password",
-        phone: "1112223333",
-        address: "456 Avenue",
-      };
       userModel.findByIdAndUpdate.mockResolvedValueOnce(updatedDoc);
 
       await updateProfileController(mockReq, mockRes);
 
-      expect(hashPassword).toHaveBeenCalledWith("newpassword123");
+      expect(hashPassword).not.toHaveBeenCalled();
       expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        "u1",
-        {
-          name: "JM",
-          password: "hashed-new-password",
-          phone: "1112223333",
-          address: "456 Avenue",
-        },
+        mockReq.user._id,
+        updatedDoc,
         { new: true }
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -568,31 +543,85 @@ describe("Auth Controller", () => {
       });
     });
 
-    it("updates profile without hashing when password is omitted", async () => {
-      mockReq.body = { name: "JM", phone: "1234567890", address: "456 Avenue" };
-      mockReq.user = { _id: "u1" };
+    it("returns validation error when new password is length 1", async () => {
+      mockReq.body.password = "1";
 
-      const updatedDoc = {
-        _id: "u1",
-        name: "JM",
-        password: "stored-hash",
-        phone: "1234567890",
-        address: "456 Avenue",
-      };
+      await updateProfileController(mockReq, mockRes);
+
+      expect(userModel.findById).toHaveBeenCalledWith(mockReq.user._id);
+      expect(hashPassword).not.toHaveBeenCalled();
+      expect(userModel.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(422);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: "Password is required and 6 character long",
+      });
+    });
+
+    it("returns validation error when new password is length 2", async () => {
+      mockReq.body.password = "12";
+
+      await updateProfileController(mockReq, mockRes);
+
+      expect(userModel.findById).toHaveBeenCalledWith(mockReq.user._id);
+      expect(hashPassword).not.toHaveBeenCalled();
+      expect(userModel.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(422);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: "Password is required and 6 character long",
+      });
+    });
+
+    it("returns validation error when new password is length 5", async () => {
+      mockReq.body.password = "12345";
+
+      await updateProfileController(mockReq, mockRes);
+
+      expect(userModel.findById).toHaveBeenCalledWith(mockReq.user._id);
+      expect(hashPassword).not.toHaveBeenCalled();
+      expect(userModel.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(422);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: "Password is required and 6 character long",
+      });
+    });
+
+    it("successfully updates password when new password length is 7", async () => {
+      hashPassword.mockResolvedValueOnce("hashed-new-password");
+      mockReq.body.password = "1234567";
+
+      const updatedDoc = { ...mockReq.body, password: "hashed-new-password" };
       userModel.findByIdAndUpdate.mockResolvedValueOnce(updatedDoc);
 
       await updateProfileController(mockReq, mockRes);
 
-      expect(hashPassword).not.toHaveBeenCalled();
+      expect(hashPassword).toHaveBeenCalledWith(mockReq.body.password);
       expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        "u1",
-        {
-          name: "JM",
-          password: "stored-hash",
-          phone: "1234567890",
-          address: "456 Avenue",
-        },
-        { new: true }
+        mockReq.user._id,
+        updatedDoc
+        , { new: true }
+      );
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Profile updated successfully",
+        updatedUser: updatedDoc,
+      });
+    });
+
+    it("successfully updates password when new password length is 8", async () => {
+      hashPassword.mockResolvedValueOnce("hashed-new-password");
+      mockReq.body.password = "12345678";
+
+      const updatedDoc = { ...mockReq.body, password: "hashed-new-password" };
+      userModel.findByIdAndUpdate.mockResolvedValueOnce(updatedDoc);
+
+      await updateProfileController(mockReq, mockRes);
+
+      expect(hashPassword).toHaveBeenCalledWith(mockReq.body.password);
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockReq.user._id,
+        updatedDoc
+        , { new: true }
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
@@ -603,8 +632,7 @@ describe("Auth Controller", () => {
     });
 
     it("keeps existing profile fields when no updates are provided", async () => {
-      mockReq.body = {}; // no overrides
-      mockReq.user = { _id: "u1" };
+      mockReq.body = {};
 
       const currentUser = {
         _id: "u1",
@@ -621,7 +649,7 @@ describe("Auth Controller", () => {
 
       expect(hashPassword).not.toHaveBeenCalled();
       expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        "u1",
+        currentUser._id,
         {
           name: "Existing",
           password: "stored-hash",
@@ -662,7 +690,7 @@ describe("Auth Controller", () => {
       orderModel.find.mockReset();
     });
 
-    it("returns buyer’s orders with products and buyer fields populated", async () => {
+    it("returns buyer's orders with products and buyer fields populated", async () => {
       const orders = [{ _id: "o1" }];
 
       const secondPopulate = jest.fn().mockReturnValue(Promise.resolve(orders));
@@ -673,7 +701,28 @@ describe("Auth Controller", () => {
 
       await getOrdersController(mockReq, mockRes);
 
-      expect(orderModel.find).toHaveBeenCalledWith({ buyer: "buyer-1" });
+      expect(orderModel.find).toHaveBeenCalledWith({ buyer: mockReq.user._id });
+      expect(firstPopulate).toHaveBeenCalledWith("products", "-photo");
+      expect(secondPopulate).toHaveBeenCalledWith("buyer", "name");
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Orders fetched successfully",
+        orders,
+      });
+    });
+
+    it("returns empty orders array when no orders are found", async () => {
+      const orders = [];
+      const secondPopulate = jest.fn().mockReturnValue(Promise.resolve(orders));
+      const firstPopulate = jest.fn().mockReturnValue({
+        populate: secondPopulate,
+      });
+      orderModel.find.mockReturnValue({ populate: firstPopulate });
+
+      await getOrdersController(mockReq, mockRes);
+
+      expect(orderModel.find).toHaveBeenCalledWith({ buyer: mockReq.user._id });
       expect(firstPopulate).toHaveBeenCalledWith("products", "-photo");
       expect(secondPopulate).toHaveBeenCalledWith("buyer", "name");
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -700,6 +749,7 @@ describe("Auth Controller", () => {
     });
   });
 
+
   // ============================================================================
   // GET ALL ORDERS CONTROLLER TESTS
   // ============================================================================
@@ -722,7 +772,30 @@ describe("Auth Controller", () => {
       expect(orderModel.find).toHaveBeenCalledWith({});
       expect(firstPopulate).toHaveBeenCalledWith("products", "-photo");
       expect(secondPopulate).toHaveBeenCalledWith("buyer", "name");
-      expect(sort).toHaveBeenCalledWith({ createdAt: "-1" });
+      expect(sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Orders fetched successfully",
+        orders,
+      });
+    });
+
+    it("returns empty orders array when no orders are found", async () => {
+      const orders = [];
+      const sort = jest.fn().mockResolvedValue(orders);
+      const secondPopulate = jest.fn().mockReturnValue({ sort });
+      const firstPopulate = jest.fn().mockReturnValue({
+        populate: secondPopulate,
+      });
+      orderModel.find.mockReturnValue({ populate: firstPopulate });
+
+      await getAllOrdersController(mockReq, mockRes);
+
+      expect(orderModel.find).toHaveBeenCalledWith({});
+      expect(firstPopulate).toHaveBeenCalledWith("products", "-photo");
+      expect(secondPopulate).toHaveBeenCalledWith("buyer", "name");
+      expect(sort).toHaveBeenCalledWith({ createdAt: -1 });
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: true,
@@ -764,8 +837,8 @@ describe("Auth Controller", () => {
       await orderStatusController(mockReq, mockRes);
 
       expect(orderModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        "order-1",
-        { status: "shipped" },
+        mockReq.params.orderId,
+        { status: updatedOrder.status },
         { new: true }
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -773,6 +846,23 @@ describe("Auth Controller", () => {
         success: true,
         message: "Order updated successfully",
         orders: updatedOrder,
+      });
+    });
+
+    it("returns 404 if no order is found", async () => {
+      orderModel.findByIdAndUpdate.mockResolvedValueOnce(null);
+
+      await orderStatusController(mockReq, mockRes);
+
+      expect(orderModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockReq.params.orderId,
+        { status: mockReq.body.status },
+        { new: true }
+      );
+      expect(mockRes.status).toHaveBeenCalledWith(404);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Order not found",
       });
     });
 
