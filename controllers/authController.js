@@ -9,7 +9,7 @@ export const registerController = async (req, res) => {
     const { name, email, password, phone, address, answer } = req.body;
     //validations
     if (!name) {
-      return res.status(400).send({ error: "Name is Required" }); // bug diego: Added status code 400 for each validation
+      return res.status(400).send({ message: "Name is Required" }); // bug diego: Added status code 400 for each validation and change error to message
     }
     if (!email) {
       return res.status(400).send({ message: "Email is Required" });
@@ -269,4 +269,3 @@ export const orderStatusController = async (req, res) => {
 };
 
 // bug diego: remove console.log(error) from all controllers
-
