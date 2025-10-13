@@ -9,7 +9,7 @@ export const registerController = async (req, res) => {
     const { name, email, password, phone, address, answer } = req.body;
     //validations
     if (!name) {
-      return res.status(400).send({ message: "Name is Required" }); // bug diego: Added status code 400 for each validation and change error to message
+      return res.status(400).send({ message: "Name is Required" }); // bug diego: Added status code 400 for each validation and  (MS2) change error to message
     }
     if (!email) {
       return res.status(400).send({ message: "Email is Required" });
@@ -96,7 +96,7 @@ export const loginController = async (req, res) => {
     });
     res.status(200).send({
       success: true,
-      message: "login successfully",
+      message: "Login successfully", // Bug Diego MS2: Proper capitalization Login to login
       user: {
         _id: user._id,
         name: user.name,
@@ -108,6 +108,7 @@ export const loginController = async (req, res) => {
       token,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error in login",

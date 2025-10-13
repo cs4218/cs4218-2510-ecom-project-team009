@@ -34,6 +34,8 @@ export default {
     "models/**",
   ],
 
+  coveragePathIgnorePatterns: [".*\\.test\\.js$"],
+
   // code coverage directory
   coverageDirectory: "coverage/backend-integration",
 
