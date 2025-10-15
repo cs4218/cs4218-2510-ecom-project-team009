@@ -28,6 +28,9 @@ export default {
     "<rootDir>/client/src/components/*.test.js",
   ],
 
+  // explicitly exclude integration test files
+  testPathIgnorePatterns: [".*integration\\.test\\.js$"],
+
   silent: true,
 
   // jest code coverage

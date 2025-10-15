@@ -13,7 +13,7 @@ export default {
     "^.+\\.jsx?$": "babel-jest",
   },
 
-  // tells jest how to handle css/scss imports in your tests
+  // tells jest how to handle some imports in tests
   moduleNameMapper: {
     "\\.(css|scss)$": "identity-obj-proxy",
   },
@@ -39,6 +39,8 @@ export default {
     "client/src/hooks/**",
     "client/src/components/**",
   ],
+
+  coveragePathIgnorePatterns: [".*\\.test\\.js$"],
 
   // code coverage directory
   coverageDirectory: "coverage/frontend-integration",
