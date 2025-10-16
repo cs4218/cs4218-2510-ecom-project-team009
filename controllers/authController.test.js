@@ -362,7 +362,7 @@ describe("Auth Controller", () => {
       expect(mockRes.send).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,
-          message: "login successfully",
+          message: "Login successfully",
           token: "jwt-token",
           user: expect.objectContaining({
             _id: "u1",
