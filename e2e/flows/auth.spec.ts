@@ -9,7 +9,7 @@ test.describe("Auth flows", () => {
   }) => {
     const email = uniqueEmail();
     const password = "Password123!";
-    const name = "Playwright Flow1";
+    const name = "Playwright User";
 
     // Step 1: visit register page and trigger client validations
     await page.goto("/register");
@@ -67,5 +67,57 @@ test.describe("Auth flows", () => {
     await expect(
       page.getByRole("heading", { name: /login form/i })
     ).toBeVisible();
+  });
+
+  test("forgot password flow resets credential and guards work", async ({
+    page,
+  }) => {
+    const seededEmail = "user@playwright.com";
+    const wrongAnswer = "incorrect-answer";
+    const correctAnswer = "user-answer";
+    const newPassword = "ResetPass123!";
+
+    // Step 1: go to login, navigte to forgot-password
+    await page.goto("/login");
+    await page.getByRole("button", { name: /forgot password/i }).click();
+    await expect(page).toHaveURL(/\/forgot-password$/);
+
+    // Step 2: trigger client validations
+    await page.getByRole("button", { name: /reset password/i }).click();
+    await expect(page.getByText("Email is required")).toBeVisible();
+    await expect(page.getByText("Answer is required")).toBeVisible();
+    await expect(page.getByText("New password is required")).toBeVisible();
+
+    // Step 3: submit wrong info to trigger error toast
+    await page.getByPlaceholder("Enter your email").fill(seededEmail);
+    await page.getByPlaceholder("Enter your answer").fill(wrongAnswer);
+    await page.getByPlaceholder("Enter your new password").fill(newPassword);
+    await page.getByRole("button", { name: /reset password/i }).click();
+    await expect(page.getByText(/Wrong email or answer/i)).toBeVisible();
+
+    // Step 4: submit correct recovery data
+    await page.getByPlaceholder("Enter your answer").fill(correctAnswer);
+    await page.getByRole("button", { name: /reset password/i }).click();
+    await expect(page.getByText(/Password reset successfully/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/login$/);
+
+    // Step 5: log in with new password and confirm redirect to home with authenticated header
+    await page.getByPlaceholder("Enter your email").fill(seededEmail);
+    await page.getByPlaceholder("Enter your password").fill(newPassword);
+    await page.getByRole("button", { name: /^login$/i }).click();
+    await expect(page).toHaveURL(/\/$/);
+    const userDropdown = page.getByRole("button", {
+      name: /regular user \(playwright\)/i,
+    });
+    await expect(userDropdown).toBeVisible();
+
+    // Step 6: hit a public route while logged in and confirm redirect
+    await page.goto("/login");
+    await expect(page).toHaveURL(/\/$/);
+
+    // Step 7: logout
+    await userDropdown.click();
+    await page.getByRole("link", { name: /logout/i }).click();
+    await expect(page).toHaveURL(/\/login$/);
   });
 });

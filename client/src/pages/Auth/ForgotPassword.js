@@ -64,7 +64,12 @@ const ForgotPassword = () => {
         toast.error(res.data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      // Bug ms2 diego: added fallback error message
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
+      toast.error(msg);
     }
   };
 
