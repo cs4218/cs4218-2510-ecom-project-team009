@@ -120,4 +120,61 @@ test.describe("Auth flows", () => {
     await page.getByRole("link", { name: /logout/i }).click();
     await expect(page).toHaveURL(/\/login$/);
   });
+
+  test("admin dashboard menu accessible and guarded for admin role", async ({
+    page,
+    context,
+  }) => {
+    const adminEmail = "admin@playwright.com";
+    const adminPassword = "AdminPass123!";
+
+    // Step 1: login as admin
+    await page.goto("/login");
+    await page.getByPlaceholder("Enter your email").fill(adminEmail);
+    await page.getByPlaceholder("Enter your password").fill(adminPassword);
+    await page.getByRole("button", { name: /^login$/i }).click();
+    await expect(page).toHaveURL(/\/$/);
+
+    // Step 2: navigate to admin dashboard through header dropdown
+    const adminDropdown = page.getByRole("button", {
+      name: /admin user \(playwright\)/i,
+    });
+    await expect(adminDropdown).toBeVisible();
+    await adminDropdown.click();
+    await page.getByRole("link", { name: /dashboard/i }).click();
+    await expect(page).toHaveURL(/\/dashboard\/admin$/);
+
+    // Step 3: wait for admin auth to resolve and verify dashboard data
+    await expect(page.getByText(/Admin Panel/i)).toBeVisible();
+    await expect(page.getByText(/Admin Name :/i)).toBeVisible();
+    await expect(page.getByText(/Admin Email :/i)).toBeVisible();
+    await expect(page.getByText(/Admin Contact :/i)).toBeVisible();
+
+    // Step 4: iterate through menu links and confirm each page loads
+    const adminMenuLinks = [
+      { text: "Create Category", url: /\/dashboard\/admin\/create-category$/ },
+      { text: "Create Product", url: /\/dashboard\/admin\/create-product$/ },
+      { text: "Products", url: /\/dashboard\/admin\/products$/ },
+      { text: "Orders", url: /\/dashboard\/admin\/orders$/ },
+      { text: "Users", url: /\/dashboard\/admin\/users$/ },
+    ];
+
+    for (const link of adminMenuLinks) {
+      await page.getByRole("link", { name: link.text }).click();
+      await expect(page).toHaveURL(link.url);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await page.goto("/dashboard/admin");
+    }
+
+    // Step 5: log out
+    await adminDropdown.click();
+    await page.getByRole("link", { name: /logout/i }).click();
+    await expect(page).toHaveURL(/\/login$/);
+
+    // Step 6: ensure admin route is guarded when not authenticated
+    const freshPage = await context.newPage();
+    await freshPage.goto("/dashboard/admin");
+    await expect(freshPage.getByText(/redirecting/i)).toBeVisible();
+    await expect(freshPage).toHaveURL(/\/login$/);
+  });
 });
