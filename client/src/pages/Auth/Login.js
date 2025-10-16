@@ -96,7 +96,7 @@ const Login = () => {
               className="form-control"
               id="exampleInputEmail1"
               placeholder="Enter your email"
-              required
+              // required
             />
             {errors.email && (
               <small className="text-danger">{errors.email}</small>
@@ -113,7 +113,7 @@ const Login = () => {
               className="form-control"
               id="exampleInputPassword1"
               placeholder="Enter your password"
-              required
+              // required
             />
             {errors.password && (
               <small className="text-danger">{errors.password}</small>
