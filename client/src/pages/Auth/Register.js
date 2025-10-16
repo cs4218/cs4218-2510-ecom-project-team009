@@ -111,7 +111,7 @@ const Register = () => {
               className="form-control"
               id="exampleInputName1"
               placeholder="Enter your name"
-              required
+              // required
               autoFocus
             />
             {errors.name && (
@@ -129,7 +129,7 @@ const Register = () => {
               className="form-control"
               id="exampleInputEmail1"
               placeholder="Enter your email"
-              required
+              // required
             />
             {errors.email && (
               <small className="text-danger">{errors.email}</small>
@@ -146,7 +146,7 @@ const Register = () => {
               className="form-control"
               id="exampleInputPassword1"
               placeholder="Enter your password"
-              required
+              // required
             />
             {errors.password && (
               <small className="text-danger">{errors.password}</small>
@@ -163,7 +163,7 @@ const Register = () => {
               className="form-control"
               id="exampleInputPhone1"
               placeholder="Enter your phone"
-              required
+              // required
             />
             {errors.phone && (
               <small className="text-danger">{errors.phone}</small>
@@ -180,7 +180,7 @@ const Register = () => {
               className="form-control"
               id="exampleInputaddress1"
               placeholder="Enter your address"
-              required
+              // required
             />
             {errors.address && (
               <small className="text-danger">{errors.address}</small>
@@ -197,7 +197,7 @@ const Register = () => {
               className="form-control"
               id="exampleInputDOB1"
               placeholder="Enter your DOB"
-              required
+              // required
             />
             {errors.DOB && <small className="text-danger">{errors.DOB}</small>}
           </div>
@@ -212,7 +212,7 @@ const Register = () => {
               className="form-control"
               id="exampleInputanswer1"
               placeholder="What is your favorite sport"
-              required
+              // required
             />
             {errors.answer && (
               <small className="text-danger">{errors.answer}</small>

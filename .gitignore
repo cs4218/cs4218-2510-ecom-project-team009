@@ -7,3 +7,4 @@ node_modules
 sonar-project.properties
 .scannerwork/
 coverage/
+/notes

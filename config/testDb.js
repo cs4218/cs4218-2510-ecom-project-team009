@@ -1,5 +1,9 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+// Load test environment variables
+dotenv.config();
 
 let mongoServer;
 
@@ -52,6 +56,9 @@ export const clearDatabase = async () => {
 
 // Jest global setup and teardown
 beforeAll(async () => {
+  // Set JWT_SECRET for tests
+  process.env.JWT_SECRET =
+    process.env.JWT_SECRET || "test-jwt-secret-key-for-integration-tests";
   await setupTestDB();
 });
 

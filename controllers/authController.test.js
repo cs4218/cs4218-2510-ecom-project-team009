@@ -115,7 +115,7 @@ describe("Auth Controller", () => {
           await registerController(mockReq, mockRes);
 
           expect(mockRes.send).toHaveBeenCalledWith({
-            [missingField === "name" ? "error" : "message"]: expectedMessage,
+            message: expectedMessage,
           });
         });
       });
@@ -243,11 +243,11 @@ describe("Auth Controller", () => {
         it(`should return an error if the ${missingField} is not provided`, async () => {
           mockReq.body = Array.isArray(missingField)
             ? Object.fromEntries(
-              missingField.map((field) => [field, undefined])
-            )
+                missingField.map((field) => [field, undefined])
+              )
             : {
-              [missingField]: undefined,
-            };
+                [missingField]: undefined,
+              };
 
           await loginController(mockReq, mockRes);
 
@@ -362,7 +362,7 @@ describe("Auth Controller", () => {
       expect(mockRes.send).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,
-          message: "login successfully",
+          message: "Login successfully",
           token: "jwt-token",
           user: expect.objectContaining({
             _id: "u1",
@@ -597,8 +597,8 @@ describe("Auth Controller", () => {
       expect(hashPassword).toHaveBeenCalledWith(mockReq.body.password);
       expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
         mockReq.user._id,
-        updatedDoc
-        , { new: true }
+        updatedDoc,
+        { new: true }
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
@@ -620,8 +620,8 @@ describe("Auth Controller", () => {
       expect(hashPassword).toHaveBeenCalledWith(mockReq.body.password);
       expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
         mockReq.user._id,
-        updatedDoc
-        , { new: true }
+        updatedDoc,
+        { new: true }
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
@@ -748,7 +748,6 @@ describe("Auth Controller", () => {
       });
     });
   });
-
 
   // ============================================================================
   // GET ALL ORDERS CONTROLLER TESTS

@@ -84,7 +84,7 @@ const ForgotPassword = () => {
               className="form-control"
               id="exampleInputEmail1"
               placeholder="Enter your email"
-              required
+              // required
             />
             {errors.email && (
               <small className="text-danger">{errors.email}</small>
@@ -101,7 +101,7 @@ const ForgotPassword = () => {
               className="form-control"
               id="exampleInputAnswer1"
               placeholder="Enter your answer"
-              required
+              // required
             />
             {errors.answer && (
               <small className="text-danger">{errors.answer}</small>
@@ -118,7 +118,7 @@ const ForgotPassword = () => {
               className="form-control"
               id="exampleInputNewPassword1"
               placeholder="Enter your new password"
-              required
+              // required
             />
             {errors.newPassword && (
               <small className="text-danger">{errors.newPassword}</small>
