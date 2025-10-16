@@ -177,4 +177,40 @@ test.describe("Auth flows", () => {
     await expect(freshPage.getByText(/redirecting/i)).toBeVisible();
     await expect(freshPage).toHaveURL(/\/login$/);
   });
+
+  test("regular user cannot access admin dashboard", async ({ page }) => {
+    const userEmail = "user@playwright.com";
+    const userPassword = "ResetPass123!";
+
+    // Step 1: log in as seeded regular user
+    await page.goto("/login");
+    await page.getByPlaceholder("Enter your email").fill(userEmail);
+    await page.getByPlaceholder("Enter your password").fill(userPassword);
+    await page.getByRole("button", { name: /^login$/i }).click();
+    await expect(page).toHaveURL(/\/$/);
+
+    // Step 2: attempt to access admin dashboard
+    await page.goto("/dashboard/admin");
+    await expect(page.getByText(/redirecting/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
+
+    // Step 3: ensure no admin panel elements are visible
+    await expect(page.getByText(/Admin Panel/i)).toHaveCount(0);
+    await expect(page.getByText(/Admin Name :/i)).toHaveCount(0);
+    await expect(page.getByText(/Admin Email :/i)).toHaveCount(0);
+    await expect(page.getByText(/Admin Contact :/i)).toHaveCount(0);
+
+    // Step 4: logout
+    if (
+      await page
+        .getByRole("button", { name: /regular user \(playwright\)/i })
+        .isVisible()
+    ) {
+      await page
+        .getByRole("button", { name: /regular user \(playwright\)/i })
+        .click();
+      await page.getByRole("link", { name: /logout/i }).click();
+    }
+    await expect(page).toHaveURL(/\/login$/);
+  });
 });
