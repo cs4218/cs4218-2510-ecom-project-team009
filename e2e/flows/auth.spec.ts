@@ -76,6 +76,7 @@ test.describe("Auth flows", () => {
     const wrongAnswer = "incorrect-answer";
     const correctAnswer = "user-answer";
     const newPassword = "ResetPass123!";
+    const originalPassword = "UserPass123!";
 
     // Step 1: go to login, navigte to forgot-password
     await page.goto("/login");
@@ -117,6 +118,31 @@ test.describe("Auth flows", () => {
 
     // Step 7: logout
     await userDropdown.click();
+    await page.getByRole("link", { name: /logout/i }).click();
+    await expect(page).toHaveURL(/\/login$/);
+
+    // Step 8: restore original password via forgot-password flow
+    await page.getByRole("button", { name: /forgot password/i }).click();
+    await expect(page).toHaveURL(/\/forgot-password$/);
+    await page.getByPlaceholder("Enter your email").fill(seededEmail);
+    await page.getByPlaceholder("Enter your answer").fill(correctAnswer);
+    await page
+      .getByPlaceholder("Enter your new password")
+      .fill(originalPassword);
+    await page.getByRole("button", { name: /reset password/i }).click();
+    await expect(page.getByText(/Password reset successfully/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/login$/);
+
+    // Step 9: confirm original password works and finish logged out
+    await page.getByPlaceholder("Enter your email").fill(seededEmail);
+    await page.getByPlaceholder("Enter your password").fill(originalPassword);
+    await page.getByRole("button", { name: /^login$/i }).click();
+    await expect(page).toHaveURL(/\/$/);
+    const restoredDropdown = page.getByRole("button", {
+      name: /regular user \(playwright\)/i,
+    });
+    await expect(restoredDropdown).toBeVisible();
+    await restoredDropdown.click();
     await page.getByRole("link", { name: /logout/i }).click();
     await expect(page).toHaveURL(/\/login$/);
   });
@@ -180,7 +206,7 @@ test.describe("Auth flows", () => {
 
   test("regular user cannot access admin dashboard", async ({ page }) => {
     const userEmail = "user@playwright.com";
-    const userPassword = "ResetPass123!";
+    const userPassword = "UserPass123!";
 
     // Step 1: log in as seeded regular user
     await page.goto("/login");
@@ -212,5 +238,78 @@ test.describe("Auth flows", () => {
       await page.getByRole("link", { name: /logout/i }).click();
     }
     await expect(page).toHaveURL(/\/login$/);
+  });
+
+  test("session survives reload, cart clears after logout", async ({
+    page,
+  }) => {
+    const userEmail = "user@playwright.com";
+    const userPassword = "UserPass123!";
+
+    // Step 1: login as regular user
+    await page.goto("/login");
+    await page.getByPlaceholder("Enter your email").fill(userEmail);
+    await page.getByPlaceholder("Enter your password").fill(userPassword);
+    await page.getByRole("button", { name: /^login$/i }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(
+      page.getByRole("button", { name: /regular user \(playwright\)/i })
+    ).toBeVisible();
+
+    // Step 2: refresh the page and ensure session remains active
+    await page.reload();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(
+      page.getByRole("button", { name: /regular user \(playwright\)/i })
+    ).toBeVisible();
+
+    // Step 3: open a product detail page and add it to the cart
+    const moreDetailsButton = page
+      .getByRole("button", { name: /more details/i })
+      .first();
+    await expect(moreDetailsButton).toBeVisible();
+    await moreDetailsButton.click();
+    await expect(page).toHaveURL(/\/product\//);
+    await page
+      .getByRole("button", { name: /^add to cart$/i })
+      .first()
+      .click();
+    await expect(page.getByText(/item added to cart/i)).toBeVisible();
+
+    // Step 4: visit cart to confirm the item and authenticated view
+    await page.goto("/cart");
+    await expect(page).toHaveURL(/\/cart$/);
+    await expect(
+      page.getByText(/You Have \d+ items in your cart/i)
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /cart summary/i })
+    ).toBeVisible();
+
+    // Step 5: attempt to access guarded register page while logged in
+    await page.goto("/register");
+    await expect(page).toHaveURL(/\/$/);
+
+    // Step 6: logout from the header dropdown
+    await page
+      .getByRole("button", { name: /regular user \(playwright\)/i })
+      .click();
+    await page.getByRole("link", { name: /logout/i }).click();
+    await expect(page).toHaveURL(/\/login$/);
+
+    // Step 7: confirm cart shows guest messaging after logout
+    await page.goto("/cart");
+    await expect(page).toHaveURL(/\/cart$/);
+    await expect(page.getByText(/hello guest/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /please login to checkout/i })
+    ).toBeVisible();
+
+    // Step 8: confirm register page is accessible again after logout
+    await page.goto("/register");
+    await expect(page).toHaveURL(/\/register$/);
+    await expect(
+      page.getByRole("heading", { name: /register form/i })
+    ).toBeVisible();
   });
 });

@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../styles/ProductDetailsStyles.css";
 import toast from "react-hot-toast";
 import { useCart } from "../context/cart";
+import { useAuth } from "../context/auth";
 
 const ProductDetails = () => {
   const params = useParams();
@@ -12,6 +13,8 @@ const ProductDetails = () => {
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [cart, setCart] = useCart();
+  const [auth] = useAuth();
+  const userId = auth?.user?._id || "guest";
 
   //initial details
   useEffect(() => {
@@ -70,7 +73,7 @@ const ProductDetails = () => {
             onClick={() => {
               setCart([...cart, product]);
               localStorage.setItem(
-                "cart",
+                `cart_${userId}`,
                 JSON.stringify([...cart, product])
               );
               toast.success("Item Added to cart");
@@ -119,7 +122,7 @@ const ProductDetails = () => {
                     onClick={() => {
                       setCart([...cart, p]);
                       localStorage.setItem(
-                        "cart",
+                        `cart_${userId}`,
                         JSON.stringify([...cart, p])
                       );
                       toast.success("Item Added to cart");
