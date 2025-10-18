@@ -26,6 +26,7 @@ export default {
     "<rootDir>/client/src/hooks/**/*.test.js",
     "<rootDir>/client/src/components/**/*.test.js",
     "<rootDir>/client/src/components/*.test.js",
+    "!**/*.integration.test.js"
   ],
 
   // explicitly exclude integration test files
@@ -40,6 +41,9 @@ export default {
     "client/src/context/**",
     "client/src/hooks/**",
     "client/src/components/**",
+    "!client/src/**/*.test.{js,jsx}",
+    "!client/src/**/*.integration.test.{js,jsx}",
+    "!client/src/__mocks__/**",
   ],
   coverageThreshold: {
     global: {

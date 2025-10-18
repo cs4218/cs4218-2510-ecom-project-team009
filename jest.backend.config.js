@@ -12,6 +12,8 @@ export default {
     "<rootDir>/helpers/*.test.js",
     "<rootDir>/models/*.test.js",
     "<rootDir>/config/*.test.js",
+    "!**/*.integration.test.js"
+
   ],
   // explicitly exclude integration test files
   testPathIgnorePatterns: [".*integration\\.test\\.js$"],
@@ -26,6 +28,9 @@ export default {
     "helpers/**",
     "models/**",
     "config/**",
+    "!config/testDb.js",
+    "!**/*.integration.test.js",
+    "!**/*.test.js"
   ],
   coveragePathIgnorePatterns: [".*integration\\.test\\.js$"],
   coverageThreshold: {
