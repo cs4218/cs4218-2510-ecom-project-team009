@@ -179,7 +179,7 @@ describe("AdminOrders Integration (top-down)", () => {
     });
 
     // User updates order status
-    const selects = document.querySelectorAll(".ant-select-selector");
+    const selects = screen.getAllByRole("combobox");
     expect(selects.length).toBeGreaterThan(0);
 
     // Click first status dropdown
@@ -276,7 +276,7 @@ describe("AdminOrders Integration (top-down)", () => {
     axios.put.mockRejectedValueOnce(new Error("Update failed"));
 
     // User tries to update order status
-    const selects = document.querySelectorAll(".ant-select-selector");
+    const selects = screen.getAllByRole("combobox");
     fireEvent.mouseDown(selects[0]);
 
     await waitFor(() => {
@@ -327,7 +327,7 @@ describe("AdminOrders Integration (top-down)", () => {
     expect(screen.queryByText("Jane Smith")).not.toBeInTheDocument();
 
     // Verify no table rows (except header)
-    const tables = document.querySelectorAll("table");
+    const tables = screen.queryAllByRole("table");
     expect(tables.length).toBe(0); // No tables rendered when orders array is empty
   });
 });
