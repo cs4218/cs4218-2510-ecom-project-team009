@@ -15,7 +15,6 @@ export const setupTestDB = async () => {
 
     // Connect mongoose to the in-memory database
     await mongoose.connect(mongoUri);
-    console.log("Test database connected");
   } catch (error) {
     console.error("Test database setup failed:", error);
     throw error;
@@ -31,7 +30,6 @@ export const teardownTestDB = async () => {
     if (mongoServer) {
       await mongoServer.stop();
     }
-    console.log("Test database disconnected");
   } catch (error) {
     console.error("Test database teardown failed:", error);
     throw error;
@@ -47,7 +45,6 @@ export const clearDatabase = async () => {
       const collection = collections[key];
       await collection.deleteMany({});
     }
-    console.log("Test database cleared");
   } catch (error) {
     console.error("Failed to clear test database:", error);
     throw error;
