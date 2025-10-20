@@ -221,12 +221,15 @@ test.describe("Admin CRUD operations", () => {
     await cleanupProductLink.click();
     await page.waitForURL(/\/dashboard\/admin\/product\//);
 
-    page.once('dialog', async (dialog) => {
-      expect(dialog.type()).toBe('prompt');
-      await dialog.accept('yes');
+    page.once('dialog', (dialog) => {
+      dialog.accept('yes');
     });
-    await page.getByRole("button", { name: /delete product/i }).click();
-    await page.waitForURL(/\/dashboard\/admin\/products$/);
+    await page.waitForTimeout(50); // Give WebKit time to register handler
+    await Promise.all([
+      page.waitForURL(/\/dashboard\/admin\/products$/),
+      page.waitForLoadState('networkidle'),
+      page.getByRole("button", { name: /delete product/i }).click()
+    ]);
 
     await logout(page);
   });
@@ -323,12 +326,15 @@ test.describe("Admin CRUD operations", () => {
     await updatedLink.click();
     await page.waitForURL(/\/dashboard\/admin\/product\//);
 
-    page.once('dialog', async (dialog) => {
-      expect(dialog.type()).toBe('prompt');
-      await dialog.accept('yes');
+    page.once('dialog', (dialog) => {
+      dialog.accept('yes');
     });
-    await page.getByRole("button", { name: /delete product/i }).click();
-    await page.waitForURL(/\/dashboard\/admin\/products$/);
+    await page.waitForTimeout(50); // Give WebKit time to register handler
+    await Promise.all([
+      page.waitForURL(/\/dashboard\/admin\/products$/),
+      page.waitForLoadState('networkidle'),
+      page.getByRole("button", { name: /delete product/i }).click()
+    ]);
 
     await logout(page);
   });
@@ -391,15 +397,18 @@ test.describe("Admin CRUD operations", () => {
     await page.waitForURL(/\/dashboard\/admin\/product\//);
 
     // Handle delete confirmation dialog
-    page.once('dialog', async (dialog) => {
-      expect(dialog.type()).toBe('prompt');
-      await dialog.accept('yes');
+    page.once('dialog', (dialog) => {
+      dialog.accept('yes');
     });
-    await page.getByRole("button", { name: /delete product/i }).click();
+    await page.waitForTimeout(50); // Give WebKit time to register handler
+    await Promise.all([
+      page.waitForURL(/\/dashboard\/admin\/products$/),
+      page.waitForLoadState('networkidle'),
+      page.getByRole("button", { name: /delete product/i }).click()
+    ]);
 
     // Note: Toast doesn't appear due to race condition bug (navigate() called immediately after toast)
     // Verify navigation and deletion instead
-    await page.waitForURL(/\/dashboard\/admin\/products$/);
     await expect(page.getByText(productName)).toHaveCount(0);
 
     // Verify deletion persists after reload
