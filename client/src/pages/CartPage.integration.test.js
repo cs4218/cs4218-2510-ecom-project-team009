@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import CartPage from "./CartPage";
 import { CartProvider } from "../context/cart";
 import { AuthProvider } from "../context/auth";
+import { SearchProvider } from "../context/search";
 
 // --- Mock external dependencies ---
 jest.mock("axios");
@@ -53,7 +54,9 @@ afterEach(() => {
 const AppProviders = ({ children }) => (
   <BrowserRouter>
     <AuthProvider>
-      <CartProvider>{children}</CartProvider>
+      <CartProvider>
+        <SearchProvider>{children}</SearchProvider>
+      </CartProvider>
     </AuthProvider>
   </BrowserRouter>
 );
