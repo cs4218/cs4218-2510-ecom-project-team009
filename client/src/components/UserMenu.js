@@ -16,6 +16,7 @@ const UserMenu = () => {
           <NavLink
             to="/dashboard/user/orders"
             className="list-group-item list-group-item-action"
+            data-testid="user-menu-orders-link"
           >
             Orders
           </NavLink>         

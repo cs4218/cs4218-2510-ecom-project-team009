@@ -27,6 +27,7 @@ const AdminMenu = () => {
           <NavLink
             to="/dashboard/admin/orders"
             className="list-group-item list-group-item-action"
+            data-testid="admin-orders-link"
           >
             Orders
           </NavLink>
