@@ -15,7 +15,7 @@ const Search = () => {
           </h6>
           <div data-testid="search-page-card-container" className="d-flex flex-wrap mt-4">
             {values?.results.map((p) => (
-              <div className="card m-2" style={{ width: "18rem" }} key={p._id}>
+              <div data-testid="search-result-item" className="card m-2" style={{ width: "18rem" }} key={p._id}>
                 <img
                   src={`/api/v1/product/product-photo/${p._id}`}
                   className="card-img-top"
