@@ -117,6 +117,8 @@ config/db.js
 
 ### Frontend:
 
+Unit Test
+
 1. context/auth.js
 2. pages/Auth/Register.js
 3. pages/Auth/Login.js
@@ -125,11 +127,33 @@ config/db.js
 6. pages/Auth/ForgotPassword.js
 7. components/Route/Public.js
 
+Integration Test
+
+1. components/Route/Public.js
+2. pages/Auth/Register.js
+3. pages/Auth/Login.js
+4. pages/AdminDashboard.js
+5. pages/Auth/ForgotPassword.js
+
 ### Backend:
+
+Unit Test
 
 1. middlewares/authMiddleware.js
 2. helpers/authHelper.js
 3. controllers/authController.js
+
+Integration Test
+
+1. controllers/authController.js (registerController)
+2. controllers/authController.js (loginController)
+3. controllers/authController.js (forgotPasswordController)
+4. routes/authRoute (register, login, forgot-password, user-auth, and admin-auth)
+
+#### Misc:
+
+- Jest integration test configurations
+- Playwright configurations w/ setup and teardown global scripts
 
 #### Bug Fix:
 

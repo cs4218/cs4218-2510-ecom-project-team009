@@ -4,16 +4,26 @@ export async function loginAsUser(page: Page, userEmail: string = "user@playwrig
   await page.goto("/login");
   await page.getByPlaceholder("Enter your email").fill(userEmail);
   await page.getByPlaceholder("Enter your password").fill(userPassword);
-  await page.getByRole("button", { name: /^login$/i }).click();
-  await page.waitForURL(/\/$/);
+
+  // Triple-layer defense: Layer 2 (Promise.all) + Layer 3 (networkidle)
+  await Promise.all([
+    page.waitForURL(/\/$/, { timeout: 60000 }),
+    page.waitForLoadState('networkidle'), // Wait for login API to complete
+    page.getByRole("button", { name: /^login$/i }).click()
+  ]);
 }
 
 export async function loginAsAdmin(page: Page, adminEmail: string = "admin@playwright.com", adminPassword: string = "AdminPass123!") {
   await page.goto("/login");
   await page.getByPlaceholder("Enter your email").fill(adminEmail);
   await page.getByPlaceholder("Enter your password").fill(adminPassword);
-  await page.getByRole("button", { name: /^login$/i }).click();
-  await page.waitForURL(/\/$/);
+
+  // Triple-layer defense: Layer 2 (Promise.all) + Layer 3 (networkidle)
+  await Promise.all([
+    page.waitForURL(/\/$/, { timeout: 60000 }),
+    page.waitForLoadState('networkidle'), // Wait for login API to complete
+    page.getByRole("button", { name: /^login$/i }).click()
+  ]);
 }
 
 export async function logout(page: Page) {
