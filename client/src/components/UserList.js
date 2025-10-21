@@ -27,7 +27,7 @@ const UserList = () => {
             {loading ? (
                 <p>Loading...</p>
             ) : (
-                <table className="table">
+                <table data-testid="user-list-table" className="table">
                     <thead>
                         <tr>
                             <th>Name</th>

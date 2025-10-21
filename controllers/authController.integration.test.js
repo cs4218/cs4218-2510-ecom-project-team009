@@ -3,8 +3,14 @@ import {
   registerController,
   loginController,
   forgotPasswordController,
+  getOrdersController,
+  getAllOrdersController,
+  orderStatusController,
 } from "./authController.js";
+import mongoose from "mongoose";
 import userModel from "../models/userModel.js";
+import orderModel from "../models/orderModel.js";
+import productModel from "../models/productModel.js";
 import { hashPassword, comparePassword } from "../helpers/authHelper.js";
 
 const buildMockReq = (body = {}) => ({ body });
@@ -26,6 +32,27 @@ const omitField = (payload, field) => {
 const seedUser = async (payload) => {
   const hashedPassword = await hashPassword(payload.password);
   return userModel.create({ ...payload, password: hashedPassword });
+};
+
+const seedUserAndOrder = async (userPayload, orders) => {
+  const user = await seedUser(userPayload);
+  const seededProduct = await productModel.create({
+    name: "Sample Product",
+    slug: "sample-product",
+    description: "This is a sample product for testing.",
+    price: 199.99,
+    category: new mongoose.Types.ObjectId(),
+    quantity: 10,
+    shipping: true,
+  });
+
+  const enrichedOrders = orders.map((order) => ({
+    ...order,
+    products: [seededProduct._id],
+    buyer: user._id,
+  }));
+  const newOrders = await orderModel.insertMany(enrichedOrders);
+  return { user, orders: newOrders };
 };
 
 const REGISTER_VALID = Object.freeze({
@@ -65,6 +92,27 @@ const FORGOT_WRONG_ANSWER_USER = Object.freeze({
   ...REGISTER_VALID,
   answer: "correct answer",
 });
+
+const sampleOrders = [
+  {
+    products: [],
+    buyer: "",
+    payment: { method: "card" },
+    status: "Processing",
+  },
+  {
+    products: [],
+    buyer: "",
+    payment: { method: "paypal" },
+    status: "deliverd",
+  },
+  {
+    products: [],
+    buyer: "",
+    payment: { method: "cash" },
+    status: "Shipped",
+  },
+];
 
 describe("Auth Controller Integration (register, login, forgot-password)", () => {
   beforeAll(() => {
@@ -391,6 +439,246 @@ describe("Auth Controller Integration (register, login, forgot-password)", () =>
         success: false,
         message: "Invalid Password",
       });
+    });
+  });
+
+  describe("getOrdersController", () => {
+    beforeEach(async () => {
+      await orderModel.deleteMany({});
+      await userModel.deleteMany({});
+      await productModel.deleteMany({});
+    });
+
+    afterAll(async () => {
+      await orderModel.deleteMany({});
+      await userModel.deleteMany({});
+      await productModel.deleteMany({});
+    });
+
+    it("returns orders for a specific user", async () => {
+      const { user: newUser } = await seedUserAndOrder(clonePayload(LOGIN_USER), sampleOrders);
+
+      const req = { user: { _id: newUser._id } };
+      const res = buildMockRes();
+
+      await getOrdersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          message: "Orders fetched successfully",
+          orders: expect.arrayContaining([
+            expect.objectContaining({ status: "Processing" }),
+            expect.objectContaining({ status: "deliverd" }),
+          ]),
+        })
+      );
+    });
+
+    it("returns empty array if user has no orders", async () => {
+      const req = { user: { _id: new mongoose.Types.ObjectId() } };
+      const res = buildMockRes();
+
+      await getOrdersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Orders fetched successfully",
+        orders: [],
+      });
+    });
+
+    it("handles internal server error", async () => {
+      const { user: newUser } = await seedUserAndOrder(clonePayload(LOGIN_USER), sampleOrders);
+
+      const req = { user: newUser };
+      const res = buildMockRes();
+
+      // Simulate DB error
+      const originalFind = orderModel.find;
+      orderModel.find = jest.fn(() => {
+        throw new Error("DB failure");
+      });
+
+      await getOrdersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Error while getting orders",
+        })
+      );
+
+      // Restore original
+      orderModel.find = originalFind;
+    });
+  });
+
+  describe("getAllOrdersController", () => {
+    beforeEach(async () => {
+      await orderModel.deleteMany({});
+      await userModel.deleteMany({});
+      await productModel.deleteMany({});
+    });
+
+    afterAll(async () => {
+      await orderModel.deleteMany({});
+      await userModel.deleteMany({});
+      await productModel.deleteMany({});
+    });
+
+    it("returns all orders", async () => {
+      await seedUserAndOrder(clonePayload(LOGIN_USER), sampleOrders);
+      const req = {};
+      const res = buildMockRes();
+
+      await getAllOrdersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          message: "Orders fetched successfully",
+          orders: expect.any(Array),
+        })
+      );
+      expect(res.send.mock.calls[0][0].orders.length).toBe(3);
+    });
+
+    it("returns empty array when no orders exist", async () => {
+      await orderModel.deleteMany({});
+      const req = {};
+      const res = buildMockRes();
+
+      await getAllOrdersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Orders fetched successfully",
+        orders: [],
+      });
+    });
+
+    it("handles internal server error", async () => {
+      const req = {};
+      const res = buildMockRes();
+
+      const originalFind = orderModel.find;
+      orderModel.find = jest.fn(() => {
+        throw new Error("DB error");
+      });
+
+      await getAllOrdersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Error while getting orders",
+        })
+      );
+
+      orderModel.find = originalFind;
+    });
+  });
+
+  describe("orderStatusController", () => {
+    beforeEach(async () => {
+      await orderModel.deleteMany({});
+      await userModel.deleteMany({});
+      await productModel.deleteMany({});
+    });
+
+    afterAll(async () => {
+      await orderModel.deleteMany({});
+      await userModel.deleteMany({});
+      await productModel.deleteMany({});
+    });
+
+    it("updates order status successfully", async () => {
+      const { orders } = await seedUserAndOrder(clonePayload(LOGIN_USER), sampleOrders);
+      const res = buildMockRes();
+
+      const order = orders[0];
+      const req = {
+        params: {
+          orderId: order._id.toString(),
+        },
+        body: {
+          status: "Shipped",
+        },
+      };
+
+      await orderStatusController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          message: "Order updated successfully",
+          orders: expect.objectContaining({
+            _id: order._id,
+            status: "Shipped",
+          }),
+        })
+      );
+
+      const updatedOrder = await orderModel.findById(order._id);
+      expect(updatedOrder.status).toBe("Shipped");
+    });
+
+    it("returns 404 if orderId is invalid or not found", async () => {
+      const req = {
+        params: {
+          orderId: new mongoose.Types.ObjectId(),
+        },
+        body: {
+          status: "Shipped",
+        },
+      };
+      const res = buildMockRes();
+
+      await orderStatusController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Order not found",
+      });
+    });
+
+    it("returns 500 on server error", async () => {
+      const req = {
+        params: {
+          orderId: new mongoose.Types.ObjectId().toString(),
+        },
+        body: {
+          status: "Cancelled",
+        },
+      };
+      const res = buildMockRes();
+
+      // Simulate internal error
+      const originalFindByIdAndUpdate = orderModel.findByIdAndUpdate;
+      orderModel.findByIdAndUpdate = jest.fn(() => {
+        throw new Error("DB failure");
+      });
+
+      await orderStatusController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Error while updating order",
+        })
+      );
+
+      orderModel.findByIdAndUpdate = originalFindByIdAndUpdate;
     });
   });
 });

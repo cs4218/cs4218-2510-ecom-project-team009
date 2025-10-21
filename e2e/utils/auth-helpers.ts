@@ -1,9 +1,6 @@
 import type { Page } from "@playwright/test";
 
-export async function loginAsUser(page: Page) {
-  const userEmail = "user@playwright.com";
-  const userPassword = "UserPass123!";
-
+export async function loginAsUser(page: Page, userEmail: string = "user@playwright.com", userPassword: string = "UserPass123!") {
   await page.goto("/login");
   await page.getByPlaceholder("Enter your email").fill(userEmail);
   await page.getByPlaceholder("Enter your password").fill(userPassword);
@@ -16,10 +13,7 @@ export async function loginAsUser(page: Page) {
   ]);
 }
 
-export async function loginAsAdmin(page: Page) {
-  const adminEmail = "admin@playwright.com";
-  const adminPassword = "AdminPass123!";
-
+export async function loginAsAdmin(page: Page, adminEmail: string = "admin@playwright.com", adminPassword: string = "AdminPass123!") {
   await page.goto("/login");
   await page.getByPlaceholder("Enter your email").fill(adminEmail);
   await page.getByPlaceholder("Enter your password").fill(adminPassword);

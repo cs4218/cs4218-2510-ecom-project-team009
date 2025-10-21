@@ -56,7 +56,7 @@ const Orders = () => {
                   </table>
                   <div data-testid="order-products-container" className="container">
                     {o?.products?.map((p, i) => (
-                      <div className="row mb-2 p-3 card flex-row" key={p._id}>
+                      <div data-testid="order-product" className="row mb-2 p-3 card flex-row" key={p._id}>
                         <div className="col-md-4">
                           <img
                             src={`/api/v1/product/product-photo/${p._id}`}

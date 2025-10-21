@@ -16,7 +16,8 @@ const Profile = () => {
 
   //get user data
   useEffect(() => {
-    const { email, name, phone, address } = auth?.user;
+    if (!auth?.user) return;
+    const { email, name, phone, address } = auth.user;
     setName(name);
     setPhone(phone);
     setEmail(email);
@@ -68,6 +69,7 @@ const Profile = () => {
                     className="form-control"
                     id="exampleInputEmail1"
                     placeholder="Enter Your Name"
+                    data-testid="name-input"
                     autoFocus
                   />
                 </div>
@@ -78,6 +80,7 @@ const Profile = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     className="form-control"
                     id="exampleInputEmail1"
+                    data-testid="email-input"
                     placeholder="Enter Your Email "
                     disabled
                   />
@@ -99,6 +102,7 @@ const Profile = () => {
                     onChange={(e) => setPhone(e.target.value)}
                     className="form-control"
                     id="exampleInputEmail1"
+                    data-testid="phone-input"
                     placeholder="Enter Your Phone"
                   />
                 </div>
@@ -109,11 +113,12 @@ const Profile = () => {
                     onChange={(e) => setAddress(e.target.value)}
                     className="form-control"
                     id="exampleInputEmail1"
+                    data-testid="address-input"
                     placeholder="Enter Your Address"
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary">
+                <button data-testid="update-profile-button" type="submit" className="btn btn-primary">
                   UPDATE
                 </button>
               </form>

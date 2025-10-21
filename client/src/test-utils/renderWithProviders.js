@@ -11,6 +11,7 @@ export const renderWithProviders = (
   ui,
   {
     initialAuthState = { user: null, token: "" },
+    initialSearchState = { keyword: "", results: [] },
     route = "/",
     ...renderOptions
   } = {}
@@ -29,7 +30,7 @@ export const renderWithProviders = (
     return (
       <BrowserRouter>
         <AuthProvider>
-          <SearchProvider>
+          <SearchProvider initialValue={initialSearchState}>
             <CartProvider>{children}</CartProvider>
           </SearchProvider>
         </AuthProvider>
