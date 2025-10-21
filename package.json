@@ -10,17 +10,17 @@
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
-    "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "npm run test:backend && npm run test:frontend",
+    "test": "npm-run-all --serial --continue-on-error test:unit test:integration",
+    "test:unit": "npm-run-all --serial --continue-on-error test:backend test:frontend",
+    "test:integration": "npm-run-all --serial --continue-on-error test:backend:integration test:frontend:integration",
+    "test:all": "npm-run-all --serial --continue-on-error test:unit test:integration test:e2e",
     "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js",
     "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js",
-    "test:integration": "npm run test:backend:integration && npm run test:frontend:integration",
     "test:backend:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.integration.config.js",
     "test:frontend:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.integration.config.js",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:ui": "playwright test --ui",
-    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e"
+    "test:e2e:ui": "playwright test --ui"
   },
   "keywords": [],
   "author": "RP",
@@ -55,6 +55,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "mockingoose": "^2.16.2",
     "mongodb-memory-server": "^10.2.3",
+    "npm-run-all": "^4.1.5",
     "sonarqube-scanner": "^4.3.2",
     "supertest": "^7.1.4"
   }

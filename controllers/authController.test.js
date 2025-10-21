@@ -356,7 +356,7 @@ describe("Auth Controller", () => {
       });
       expect(comparePassword).toHaveBeenCalledWith("password123", "hashed");
       expect(JWT.sign).toHaveBeenCalledWith({ _id: "u1" }, "test-secret", {
-        expiresIn: "7d",
+        expiresIn: "365d",
       });
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith(
