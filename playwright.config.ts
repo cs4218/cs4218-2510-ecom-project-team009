@@ -5,6 +5,9 @@ dotenv.config();
 
 export default defineConfig({
   testDir: "./e2e",
+  testMatch: [
+    "**/*.spec.ts", // Only include .spec.ts files
+  ],
   timeout: 30_000,
   reporter: [["html"], ["list"]],
   use: {
