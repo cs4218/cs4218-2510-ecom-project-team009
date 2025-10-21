@@ -32,7 +32,7 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 
 ### Winston Leonard Prayonggo (A0255823B)
 
-#### Frontend:
+#### Frontend Unit Test + Integration Test:
 
 1. pages/Homepage.js
 2. context/cart.js
@@ -40,10 +40,16 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 4. hooks/useCategory.js
 5. pages/Categories.js
 
-#### Backend:
+#### Backend Unit Test + Integration Test:
 
 1. controllers/categoryController.js
 2. models/categoryModel.js
+3. braintreeController inside productController.js
+
+#### End to End playwright test:
+
+1. e2e/flows/home-cart-payment.spec.ts
+2. e2e/flows/home-category.spec.ts
 
 #### Bug Fix:
 
@@ -67,6 +73,9 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
   Fixed by ensuring each rendered item in the cart list uses a unique key
 - **Cart not user-specific:**  
   Cart contents did not differ between logged-in accounts. Fixed by namespacing localStorage keys (e.g., `cart_<userId>`).
+  - **Users logged in for more than 7 days are unable to make payment:**  
+    The JWT token for the user has already expired, making them unable to make
+    a payment. Current Fix: Set the expiry token to 365 days.
 
 ##### **categoryController.js**
 
