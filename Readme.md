@@ -101,24 +101,32 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 
 ### Nicholas Chee (A0251980B)
 
-### Frontend:
+### Frontend Unit Tests:
 
-pages/ProductDetails.js
-pages/CategoryProduct.js
-pages/Contact.js
-pages/Policy.js
-pages/About.js
-pages/Pagenotfound.js
-components/Footer.js
-components/Header.js
-components/Layout.js
-components/Spinner.js
+1. pages/ProductDetails.js
+2. pages/CategoryProduct.js
+3. pages/Contact.js
+4. pages/Policy.js
+5. pages/About.js
+6. pages/Pagenotfound.js
+7. components/Footer.js
+8. components/Header.js
+9. components/Layout.js
+10. components/Spinner.js
 
-### Backend:
+### Backend Unit Tests:
 
-controllers/productController.js
-models/productModel.js
-config/db.js
+1. controllers/productController.js
+2. models/productModel.js
+3. config/db.js
+
+### Integration Tests:
+1. productController.integration.test.js
+2. ProductDetails.integration.test.js
+
+### E2E Playwright Tests:
+1. category-product.spec.ts
+2. product-details.spec.ts
 
 ---
 
