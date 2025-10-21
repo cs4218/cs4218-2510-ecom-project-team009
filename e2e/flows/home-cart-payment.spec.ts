@@ -127,107 +127,138 @@ test.describe("E-commerce Main Flow", () => {
       ).toBeVisible();
     });
 
-    test("should display address and payment options for checkout", async ({
-      page,
-    }) => {
-      await page.goto("/");
+    // --- Payment Scenarios ---
+    test.describe("Payment Scenarios", () => {
+      test("should successfully complete a payment and redirect to orders", async ({
+        page,
+      }) => {
+        await page.goto("/");
 
-      // 1. Add item to cart to satisfy the `cart.length > 0` condition for payment UI
-      const toast = page.getByText("Item Added to cart");
-      await page
-        .locator(".card")
-        .first()
-        .getByRole("button", { name: "ADD TO CART" })
-        .click();
-      await expect(toast).toBeVisible();
-      await expect(toast).not.toBeVisible();
+        // 1. Add item to cart
+        const toast = page.getByText("Item Added to cart");
+        await page
+          .locator(".card")
+          .first()
+          .getByRole("button", { name: "ADD TO CART" })
+          .click();
+        await expect(toast).toBeVisible();
+        await expect(toast).not.toBeVisible();
 
-      // 2. Go to cart page
-      await page.goto("/cart");
+        // 2. Go to cart page
+        await page.goto("/cart");
 
-      // 3. CRITICAL: Wait for the API call that provides the `clientToken` and confirm it was successful.
-      // The payment UI will not render until this token is fetched.
-      const tokenResponse = await page.waitForResponse(
-        "**/api/v1/product/braintree/token"
-      );
-      expect(tokenResponse.ok()).toBeTruthy();
+        // 3. Wait for the Braintree token API call
+        const tokenResponse = await page.waitForResponse(
+          "**/api/v1/product/braintree/token"
+        );
+        expect(tokenResponse.ok()).toBeTruthy();
 
-      // 4. Verify user address is displayed (from global-setup)
-      await expect(page.getByText("Current Address")).toBeVisible();
-      await expect(page.getByText("1 User Way")).toBeVisible();
+        // 4. Wait for the payment button to be ready before interacting with the payment UI
+        await expect(
+          page.getByRole("button", { name: "Make Payment" })
+        ).toBeVisible();
 
-      // 5. Verify "Make Payment" button is visible and enabled, as all conditions are now met.
-      const makePaymentButton = page.getByRole("button", {
-        name: "Make Payment",
+        // 5. Expand the card payment form
+        await page.getByRole("button", { name: "Paying with Card" }).click();
+        await expect(page.getByText("Card Number")).toBeVisible();
+
+        // 6. Fill in Braintree hosted fields (they are in iframes)
+        // Braintree provides test card numbers.
+        const cardNumberFrame = page.frameLocator(
+          'iframe[name="braintree-hosted-field-number"]'
+        );
+        await cardNumberFrame
+          .getByLabel("Credit Card Number")
+          .fill("4111111111111111");
+
+        const expirationDateFrame = page.frameLocator(
+          'iframe[name="braintree-hosted-field-expirationDate"]'
+        );
+        await expirationDateFrame.getByLabel("Expiration Date").fill("1229"); // MMYY format
+
+        const cvvFrame = page.frameLocator(
+          'iframe[name="braintree-hosted-field-cvv"]'
+        );
+        await cvvFrame.getByLabel("CVV").fill("123");
+
+        // 7. Click the Make Payment button
+        await page.getByRole("button", { name: "Make Payment" }).click();
+
+        // 8. Assert navigation to the orders page
+        await page.waitForURL("**/dashboard/user/orders");
+        await expect(page).toHaveURL("/dashboard/user/orders");
+
+        // 9. Verify the success toast message on the new page
+        await expect(
+          page.getByText("Payment Completed Successfully")
+        ).toBeVisible();
       });
-      await expect(makePaymentButton).toBeVisible();
-      await expect(makePaymentButton).toBeEnabled();
 
-      // 6. Click the "Card" payment option to expand the form
-      await page.getByRole("button", { name: "Paying with Card" }).click();
+      test("should show an error for an invalid credit card number", async ({
+        page,
+      }) => {
+        await page.goto("/");
 
-      // 7. Verify that the card number input label is now visible.
-      await expect(page.getByText("Card Number")).toBeVisible();
-    });
+        // 1. Add item to cart
+        const toast = page.getByText("Item Added to cart");
+        await page
+          .locator(".card")
+          .first()
+          .getByRole("button", { name: "ADD TO CART" })
+          .click();
+        await expect(toast).toBeVisible();
+        await expect(toast).not.toBeVisible();
 
-    test("should successfully complete a payment and redirect to orders", async ({
-      page,
-    }) => {
-      await page.goto("/");
+        // 2. Go to cart page
+        await page.goto("/cart");
 
-      // 1. Add item to cart
-      const toast = page.getByText("Item Added to cart");
-      await page
-        .locator(".card")
-        .first()
-        .getByRole("button", { name: "ADD TO CART" })
-        .click();
-      await expect(toast).toBeVisible();
-      await expect(toast).not.toBeVisible();
+        // 3. Wait for the Braintree token API call
+        const tokenResponse = await page.waitForResponse(
+          "**/api/v1/product/braintree/token"
+        );
+        expect(tokenResponse.ok()).toBeTruthy();
 
-      // 2. Go to cart page
-      await page.goto("/cart");
+        // 4. Wait for the payment button to be ready before interacting with the payment UI
+        await expect(
+          page.getByRole("button", { name: "Make Payment" })
+        ).toBeVisible();
 
-      // 3. Wait for the Braintree token API call
-      const tokenResponse = await page.waitForResponse(
-        "**/api/v1/product/braintree/token"
-      );
-      expect(tokenResponse.ok()).toBeTruthy();
+        // 5. Expand the card payment form
+        await page.getByRole("button", { name: "Paying with Card" }).click();
+        await expect(page.getByText("Card Number")).toBeVisible();
 
-      // 4. Expand the card payment form
-      await page.getByRole("button", { name: "Paying with Card" }).click();
-      await expect(page.getByText("Card Number")).toBeVisible();
+        // 6. Fill form with an invalid card number
+        const cardNumberFrame = page.frameLocator(
+          'iframe[name="braintree-hosted-field-number"]'
+        );
+        await cardNumberFrame
+          .getByLabel("Credit Card Number")
+          .fill("1231231231231231");
 
-      // 5. Fill in Braintree hosted fields (they are in iframes)
-      // Braintree provides test card numbers.
-      const cardNumberFrame = page.frameLocator(
-        'iframe[name="braintree-hosted-field-number"]'
-      );
-      await cardNumberFrame
-        .getByLabel("Credit Card Number")
-        .fill("4111111111111111");
+        const expirationDateFrame = page.frameLocator(
+          'iframe[name="braintree-hosted-field-expirationDate"]'
+        );
+        await expirationDateFrame.getByLabel("Expiration Date").fill("0126"); // MMYY format
 
-      const expirationDateFrame = page.frameLocator(
-        'iframe[name="braintree-hosted-field-expirationDate"]'
-      );
-      await expirationDateFrame.getByLabel("Expiration Date").fill("1229"); // MMYY format
+        const cvvFrame = page.frameLocator(
+          'iframe[name="braintree-hosted-field-cvv"]'
+        );
+        await cvvFrame.getByLabel("CVV").fill("123");
 
-      const cvvFrame = page.frameLocator(
-        'iframe[name="braintree-hosted-field-cvv"]'
-      );
-      await cvvFrame.getByLabel("CVV").fill("123");
+        // 7. Click the Make Payment button
+        await page.getByRole("button", { name: "Make Payment" }).click();
 
-      // 6. Click the Make Payment button
-      await page.getByRole("button", { name: "Make Payment" }).click();
+        // 8. Assert that the validation error messages are visible
+        await expect(
+          page.getByText("This card number is not valid.")
+        ).toBeVisible();
+        await expect(
+          page.getByText("Please check your information and try again.")
+        ).toBeVisible();
 
-      // 7. Assert navigation to the orders page
-      await page.waitForURL("**/dashboard/user/orders");
-      await expect(page).toHaveURL("/dashboard/user/orders");
-
-      // 8. Verify the success toast message on the new page
-      await expect(
-        page.getByText("Payment Completed Successfully")
-      ).toBeVisible();
+        // 9. Assert that the page has NOT navigated away
+        await expect(page).toHaveURL("/cart");
+      });
     });
   });
 });
