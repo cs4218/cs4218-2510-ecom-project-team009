@@ -10,7 +10,7 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 
 ### Tabriz Pahlavi (A0233017U)
 
-#### Frontend:
+#### Frontend Unit Test + Integration Test:
 
 1. pages/user/Orders.js
 2. pages/user/Profile.js
@@ -20,13 +20,19 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 6. context/search.js
 7. pages/Search.js
 
-#### Backend:
+#### Backend Unit Test + Integration Test:
 
 1.  updateProfileController
 2.  getOrdersController
 3.  getAllOrdersController
 4.  orderStatusController
 5.  models/orderModel.js
+
+#### E2E Tests
+1.  e2e/flows/profile-page.spec.ts
+2.  e2e/flows/admin-users-list.spec.ts
+3.  e2e/flows/search-feature.spec.ts
+4.  e2e/flows/order-feature.spec.ts
 
 ---
 
