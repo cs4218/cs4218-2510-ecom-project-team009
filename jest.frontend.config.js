@@ -26,7 +26,7 @@ export default {
     "<rootDir>/client/src/hooks/**/*.test.js",
     "<rootDir>/client/src/components/**/*.test.js",
     "<rootDir>/client/src/components/*.test.js",
-    "!**/*.integration.test.js"
+    "!**/*.integration.test.js",
   ],
 
   // explicitly exclude integration test files
@@ -52,4 +52,5 @@ export default {
     },
   },
   setupFilesAfterEnv: ["<rootDir>/client/src/setupTests.js"],
+  coverageDirectory: "coverage/frontend-unit",
 };

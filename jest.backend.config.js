@@ -12,8 +12,7 @@ export default {
     "<rootDir>/helpers/*.test.js",
     "<rootDir>/models/*.test.js",
     "<rootDir>/config/*.test.js",
-    "!**/*.integration.test.js"
-
+    "!**/*.integration.test.js",
   ],
   // explicitly exclude integration test files
   testPathIgnorePatterns: [".*integration\\.test\\.js$"],
@@ -30,7 +29,7 @@ export default {
     "config/**",
     "!config/testDb.js",
     "!**/*.integration.test.js",
-    "!**/*.test.js"
+    "!**/*.test.js",
   ],
   coveragePathIgnorePatterns: [".*integration\\.test\\.js$"],
   coverageThreshold: {
@@ -39,4 +38,5 @@ export default {
       functions: 100,
     },
   },
+  coverageDirectory: "coverage/backend-unit",
 };
