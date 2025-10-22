@@ -29,6 +29,7 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 5.  models/orderModel.js
 
 #### E2E Tests
+
 1.  e2e/flows/profile-page.spec.ts
 2.  e2e/flows/admin-users-list.spec.ts
 3.  e2e/flows/search-feature.spec.ts
@@ -127,10 +128,12 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 3. config/db.js
 
 ### Integration Tests:
+
 1. productController.integration.test.js
 2. ProductDetails.integration.test.js
 
 ### E2E Playwright Tests:
+
 1. category-product.spec.ts
 2. product-details.spec.ts
 
@@ -226,7 +229,7 @@ Integration Test
 
 ### Rick Koh (A0255063J)
 
-#### Frontend:
+#### Frontend Unit Test:
 
 1. components/Form/CategoryForm.js
 2. components/Routes/AdminRoute.js
@@ -239,12 +242,42 @@ Integration Test
 9. pages/admin/UpdateProduct.js
 10. pages/user/Dashboard.js
 
-#### Backend:
+#### Frontend Integration Test:
+
+1. pages/admin/CreateProduct.js
+2. pages/admin/UpdateProduct.js
+3. pages/admin/CreateCategory.js
+4. pages/admin/AdminOrders.js
+5. pages/admin/Products.js
+6. components/Routes/Private.js
+7. pages/user/Dashboard.js
+8. components/UserMenu.js
+
+#### Backend Test:
 
 1. models/productModel.js
 2. models/userModel.js
 
+#### E2E Tests:
+
+1. e2e/flows/admin-actions.spec.ts
+2. e2e/flows/admin-view.spec.ts
+3. e2e/flows/user-flows.spec.ts
+
+#### Misc:
+
+- config/db.js: Enhanced connection pooling for improved E2E testing
+- playwright.config.ts: Enhanced configuration with workers
+- e2e/utils/auth-helpers.ts: Implemented triple-layer defense in login functions to address timing issues
+
 #### Bug Fix:
+
+##### **Missing Dependencies & Linting**
+
+- **react-icons dependency:** Added missing react-icons package in client
+- **CreateCategory.js:** Added missing React `key` prop
+- **CreateProduct.js & UpdateProduct.js:** Fixed AntDesign deprecated bordered prop
+- **AdminOrders.js:** Fixed linting errors
 
 ##### **AdminRoute.js**
 
