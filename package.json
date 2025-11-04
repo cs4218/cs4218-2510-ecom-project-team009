@@ -10,6 +10,7 @@
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
+    "seed-stress-test": "node performance-testing/data/seed-test-data.js",
     "test": "npm-run-all --serial --continue-on-error test:unit test:integration",
     "test:unit": "npm-run-all --serial --continue-on-error test:backend test:frontend",
     "test:integration": "npm-run-all --serial --continue-on-error test:backend:integration test:frontend:integration",
