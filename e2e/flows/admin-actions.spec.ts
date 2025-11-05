@@ -1,14 +1,36 @@
 import { test, expect } from "@playwright/test";
-import { loginAsAdmin, logout } from "../utils/auth-helpers";
+import { loginAsAdmin, logout, createTestUser, deleteTestUser } from "../utils/auth-helpers";
 
 test.describe("Admin CRUD operations", () => {
+  const admin = {
+    email: "admin-actions-test@test.com",
+    password: "AdminActions123!",
+    name: "Admin Actions Test User",
+  };
+
+  test.beforeAll(async () => {
+    await createTestUser({
+      name: admin.name,
+      email: admin.email,
+      password: admin.password,
+      phone: "4444444444",
+      address: "123 Admin Actions St",
+      answer: "admin-actions-answer",
+      role: 1,
+    });
+  });
+
+  test.afterAll(async () => {
+    await deleteTestUser(admin.email);
+  });
+
   test("admin creates category and verifies persistence", async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Navigate to Create Category page
     await page.waitForLoadState("domcontentloaded");
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(admin.name, "i"),
     });
     await adminDropdown.waitFor({ state: "visible" });
     await adminDropdown.click({ force: true });
@@ -39,16 +61,16 @@ test.describe("Admin CRUD operations", () => {
     await categoryRow.getByRole("button", { name: /delete/i }).click();
     await expect(page.getByText(/category is deleted/i)).toBeVisible();
 
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin updates category", async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Navigate to Create Category page
     await page.waitForLoadState("domcontentloaded");
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(admin.name, "i"),
     });
     await adminDropdown.waitFor({ state: "visible" });
     await adminDropdown.click({ force: true });
@@ -102,16 +124,16 @@ test.describe("Admin CRUD operations", () => {
     await updatedCategoryRow.getByRole("button", { name: /delete/i }).click();
     await expect(page.getByText(/category is deleted/i)).toBeVisible();
 
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin deletes category", async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Navigate to Create Category page
     await page.waitForLoadState("domcontentloaded");
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(admin.name, "i"),
     });
     await adminDropdown.waitFor({ state: "visible" });
     await adminDropdown.click({ force: true });
@@ -144,16 +166,16 @@ test.describe("Admin CRUD operations", () => {
     await page.reload();
     await expect(page.getByText(categoryName)).toHaveCount(0);
 
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin creates product with category and photo", async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Navigate to Create Product page
     await page.waitForLoadState("domcontentloaded");
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(admin.name, "i"),
     });
     await adminDropdown.waitFor({ state: "visible" });
     await adminDropdown.click({ force: true });
@@ -231,16 +253,16 @@ test.describe("Admin CRUD operations", () => {
       page.getByRole("button", { name: /delete product/i }).click()
     ]);
 
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin updates existing product", async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Navigate to Create Product and create a product first
     await page.waitForLoadState("domcontentloaded");
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(admin.name, "i"),
     });
     await adminDropdown.waitFor({ state: "visible" });
     await adminDropdown.click({ force: true });
@@ -336,16 +358,16 @@ test.describe("Admin CRUD operations", () => {
       page.getByRole("button", { name: /delete product/i }).click()
     ]);
 
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin deletes product", async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Navigate to products page
     await page.waitForLoadState("domcontentloaded");
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(admin.name, "i"),
     });
     await adminDropdown.waitFor({ state: "visible" });
     await adminDropdown.click({ force: true });
@@ -415,18 +437,18 @@ test.describe("Admin CRUD operations", () => {
     await page.reload();
     await expect(page.getByText(productName)).toHaveCount(0);
 
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin receives validation errors for invalid inputs", async ({
     page,
   }) => {
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Navigate to Create Product page
     await page.waitForLoadState("domcontentloaded");
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(admin.name, "i"),
     });
     await adminDropdown.waitFor({ state: "visible" });
     await adminDropdown.click({ force: true });
@@ -441,6 +463,6 @@ test.describe("Admin CRUD operations", () => {
     // Verify backend validation error toast
     await expect(page.getByText(/something went wrong/i)).toBeVisible();
 
-    await logout(page);
+    await logout(page, admin.name);
   });
 });

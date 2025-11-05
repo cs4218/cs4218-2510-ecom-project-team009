@@ -74,7 +74,7 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
     await expect(page.getByText(/Admin Email :/i)).toHaveCount(0);
 
     // Step 6: logout
-    await logout(page);
+    await logout(page, users.regular.name);
   });
 
   test("admin can access admin routes", async ({ page }) => {
@@ -91,7 +91,7 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
     await expect(page.getByText(/Admin Contact :/i)).toBeVisible();
 
     // Step 4: logout
-    await logout(page);
+    await logout(page, users.admin.name);
   });
 
   test("user dashboard displays user information", async ({ page }) => {
@@ -111,7 +111,7 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
     await expect(page.getByRole("heading", { name: new RegExp(users.regular.email, "i") })).toBeVisible();
 
     // Step 4: logout
-    await logout(page);
+    await logout(page, users.regular.name);
   });
 
   test("user menu navigation works", async ({ page }) => {
@@ -139,7 +139,7 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
     await expect(page).toHaveURL(/\/dashboard\/user\/orders$/);
 
     // Step 7: logout
-    await logout(page);
+    await logout(page, users.regular.name);
   });
 
   test("menu shows different links for admin vs user", async ({ page }) => {
@@ -161,7 +161,7 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
     await page.keyboard.press("Escape");
 
     // Step 4: logout
-    await logout(page);
+    await logout(page, users.admin.name);
 
     // Step 5: login as regular user
     await loginAsUser(page, users.regular.email, users.regular.password);
@@ -184,6 +184,6 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
     await page.keyboard.press("Escape");
 
     // Step 9: logout
-    await logout(page);
+    await logout(page, users.regular.name);
   });
 });

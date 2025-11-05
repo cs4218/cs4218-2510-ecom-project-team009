@@ -1,14 +1,36 @@
 import { test, expect } from "@playwright/test";
-import { loginAsAdmin, logout } from "../utils/auth-helpers";
+import { loginAsAdmin, logout, createTestUser, deleteTestUser } from "../utils/auth-helpers";
 
 test.describe("Admin View - Orders & Products", () => {
+  const admin = {
+    email: "admin-view-test@test.com",
+    password: "AdminView123!",
+    name: "Admin View Test User",
+  };
+
+  test.beforeAll(async () => {
+    await createTestUser({
+      name: admin.name,
+      email: admin.email,
+      password: admin.password,
+      phone: "3333333333",
+      address: "789 Admin View St",
+      answer: "admin-view-answer",
+      role: 1,
+    });
+  });
+
+  test.afterAll(async () => {
+    await deleteTestUser(admin.email);
+  });
+
   test("admin views all orders with details", async ({ page }) => {
     // Step 1: Login as admin
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Step 2: Navigate to Orders page via admin menu
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(admin.name, "i"),
     });
     await adminDropdown.click();
     await page.getByRole("link", { name: /dashboard/i }).click();
@@ -23,22 +45,22 @@ test.describe("Admin View - Orders & Products", () => {
     ).toBeVisible();
 
     // Step 4: Verify table headers are present
-    await expect(page.getByRole("columnheader", { name: "#" })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Status" })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Buyer" })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: /date/i })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Payment" })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Quantity" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "#" }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Status" }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Buyer" }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /date/i }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Payment" }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Quantity" }).first()).toBeVisible();
 
     // Step 5: Logout
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin updates order status and verifies persistence", async ({
     page,
   }) => {
     // Step 1: Login as admin
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Step 2: Navigate to Orders page
     await page.goto("/dashboard/admin/orders");
@@ -74,16 +96,16 @@ test.describe("Admin View - Orders & Products", () => {
     }
 
     // Step 8: Logout
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin views all products list", async ({ page }) => {
     // Step 1: Login as admin
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Step 2: Navigate to Products page via admin menu
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(admin.name, "i"),
     });
     await adminDropdown.click();
     await page.getByRole("link", { name: /dashboard/i }).click();
@@ -110,14 +132,14 @@ test.describe("Admin View - Orders & Products", () => {
     }
 
     // Step 5: Logout
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin navigates from products list to update product page", async ({
     page,
   }) => {
     // Step 1: Login as admin
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Step 2: Navigate to Products page
     await page.goto("/dashboard/admin/products");
@@ -154,12 +176,12 @@ test.describe("Admin View - Orders & Products", () => {
     }
 
     // Step 9: Logout
-    await logout(page);
+    await logout(page, admin.name);
   });
 
   test("admin views orders page when no orders exist", async ({ page }) => {
     // Step 1: Login as admin
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, admin.email, admin.password);
 
     // Step 2: Navigate directly to Orders page
     await page.goto("/dashboard/admin/orders");
@@ -171,10 +193,10 @@ test.describe("Admin View - Orders & Products", () => {
     ).toBeVisible();
 
     // Step 4: Verify page doesn't crash with empty state
-    await expect(page.getByRole("columnheader", { name: "Status" })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Buyer" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Status" }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Buyer" }).first()).toBeVisible();
 
     // Step 5: Logout
-    await logout(page);
+    await logout(page, admin.name);
   });
 });

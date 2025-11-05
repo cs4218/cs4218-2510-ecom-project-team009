@@ -3,34 +3,33 @@ import mongoose from "mongoose";
 import userModel from "../../models/userModel.js";
 import { hashPassword } from "../../helpers/authHelper.js";
 
-export async function loginAsUser(page: Page, userEmail: string = "user@playwright.com", userPassword: string = "UserPass123!") {
+async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
-  await page.getByPlaceholder("Enter your email").fill(userEmail);
-  await page.getByPlaceholder("Enter your password").fill(userPassword);
+  await page.getByPlaceholder("Enter your email").fill(email);
+  await page.getByPlaceholder("Enter your password").fill(password);
 
-  // Triple-layer defense: Layer 2 (Promise.all) + Layer 3 (networkidle)
   await Promise.all([
     page.waitForURL(/\/$/, { timeout: 60000 }),
-    page.waitForLoadState('networkidle'), // Wait for login API to complete
+    page.waitForLoadState('networkidle'),
     page.getByRole("button", { name: /^login$/i }).click()
   ]);
+}
+
+export async function loginAsUser(page: Page, userEmail: string = "user@playwright.com", userPassword: string = "UserPass123!") {
+  await login(page, userEmail, userPassword);
 }
 
 export async function loginAsAdmin(page: Page, adminEmail: string = "admin@playwright.com", adminPassword: string = "AdminPass123!") {
-  await page.goto("/login");
-  await page.getByPlaceholder("Enter your email").fill(adminEmail);
-  await page.getByPlaceholder("Enter your password").fill(adminPassword);
-
-  // Triple-layer defense: Layer 2 (Promise.all) + Layer 3 (networkidle)
-  await Promise.all([
-    page.waitForURL(/\/$/, { timeout: 60000 }),
-    page.waitForLoadState('networkidle'), // Wait for login API to complete
-    page.getByRole("button", { name: /^login$/i }).click()
-  ]);
+  await login(page, adminEmail, adminPassword);
 }
 
-export async function logout(page: Page) {
-  const dropdown = page.getByRole("button", { name: /\(playwright\)/i });
+export async function logout(page: Page, userName?: string) {
+  let dropdown;
+  if (userName) {
+    dropdown = page.getByRole("button", { name: new RegExp(userName, "i") });
+  } else {
+    dropdown = page.getByRole("button", { name: /\(playwright\)/i });
+  }
   await dropdown.click();
   await page.getByRole("link", { name: /logout/i }).click();
   await page.waitForURL(/\/login$/);
