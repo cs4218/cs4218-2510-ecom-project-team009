@@ -1,7 +1,47 @@
 import { test, expect } from "@playwright/test";
-import { loginAsAdmin, loginAsUser, logout } from "../utils/auth-helpers";
+import { loginAsAdmin, loginAsUser, logout, createTestUser, deleteTestUser } from "../utils/auth-helpers";
 
 test.describe("User flows - Guards, Dashboard, Menu", () => {
+  const users = {
+    regular: {
+      email: "userflows-regular@test.com",
+      password: "UserFlow123!",
+      name: "User Flows Regular User",
+    },
+    admin: {
+      email: "userflows-admin@test.com",
+      password: "AdminFlow123!",
+      name: "User Flows Admin User",
+    },
+  };
+
+  test.beforeAll(async () => {
+    await createTestUser({
+      name: users.regular.name,
+      email: users.regular.email,
+      password: users.regular.password,
+      phone: "1111111111",
+      address: "123 User Flow St",
+      answer: "userflow-answer",
+      role: 0,
+    });
+
+    await createTestUser({
+      name: users.admin.name,
+      email: users.admin.email,
+      password: users.admin.password,
+      phone: "2222222222",
+      address: "456 Admin Flow Ave",
+      answer: "adminflow-answer",
+      role: 1,
+    });
+  });
+
+  test.afterAll(async () => {
+    await deleteTestUser(users.regular.email);
+    await deleteTestUser(users.admin.email);
+  });
+
   test("unauthenticated user redirected from private route", async ({
     page,
   }) => {
@@ -17,7 +57,7 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
 
   test("regular user blocked from admin routes", async ({ page }) => {
     // Step 1: login as regular user
-    await loginAsUser(page);
+    await loginAsUser(page, users.regular.email, users.regular.password);
 
     // Step 2: attempt to access admin dashboard
     await page.goto("/dashboard/admin");
@@ -39,7 +79,7 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
 
   test("admin can access admin routes", async ({ page }) => {
     // Step 1: login as admin
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, users.admin.email, users.admin.password);
 
     // Step 2: navigate to admin dashboard
     await page.goto("/dashboard/admin");
@@ -56,20 +96,19 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
 
   test("user dashboard displays user information", async ({ page }) => {
     // Step 1: login as regular user
-    await loginAsUser(page);
+    await loginAsUser(page, users.regular.email, users.regular.password);
 
     // Step 2: navigate to user dashboard via header dropdown
     const userDropdown = page.getByRole("button", {
-      name: /regular user \(playwright\)/i,
+      name: new RegExp(users.regular.name, "i"),
     });
     await userDropdown.click();
     await page.getByRole("link", { name: /dashboard/i }).click();
     await expect(page).toHaveURL(/\/dashboard\/user$/);
 
     // Step 3: verify user details displayed
-    await expect(page.getByRole("heading", { name: /Regular User \(Playwright\)/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /user@playwright\.com/i })).toBeVisible();
-    // Address is verified implicitly (displayed as h3, no need to check specific value)
+    await expect(page.getByRole("heading", { name: new RegExp(users.regular.name, "i") })).toBeVisible();
+    await expect(page.getByRole("heading", { name: new RegExp(users.regular.email, "i") })).toBeVisible();
 
     // Step 4: logout
     await logout(page);
@@ -77,7 +116,7 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
 
   test("user menu navigation works", async ({ page }) => {
     // Step 1: login as regular user
-    await loginAsUser(page);
+    await loginAsUser(page, users.regular.email, users.regular.password);
 
     // Step 2: navigate to user dashboard
     await page.goto("/dashboard/user");
@@ -105,11 +144,11 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
 
   test("menu shows different links for admin vs user", async ({ page }) => {
     // Step 1: login as admin
-    await loginAsAdmin(page);
+    await loginAsAdmin(page, users.admin.email, users.admin.password);
 
     // Step 2: verify admin dropdown exists
     const adminDropdown = page.getByRole("button", {
-      name: /admin user \(playwright\)/i,
+      name: new RegExp(users.admin.name, "i"),
     });
     await expect(adminDropdown).toBeVisible();
 
@@ -125,11 +164,11 @@ test.describe("User flows - Guards, Dashboard, Menu", () => {
     await logout(page);
 
     // Step 5: login as regular user
-    await loginAsUser(page);
+    await loginAsUser(page, users.regular.email, users.regular.password);
 
     // Step 6: verify user dropdown exists
     const userDropdown = page.getByRole("button", {
-      name: /regular user \(playwright\)/i,
+      name: new RegExp(users.regular.name, "i"),
     });
     await expect(userDropdown).toBeVisible();
 
