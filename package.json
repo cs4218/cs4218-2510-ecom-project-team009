@@ -11,6 +11,9 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
     "seed-stress-test": "node performance-testing/data/seed-test-data.js",
+    "seed-load-test-users": "node performance-testing/data/seed-load-test-users.js",
+    "run-load-test": "sh performance-testing/scenarios/user-shopping-journey/run-load-test.sh",
+    "cleanup-load-test": "node performance-testing/scenarios/user-shopping-journey/cleanup.js",
     "test": "npm-run-all --serial --continue-on-error test:unit test:integration",
     "test:unit": "npm-run-all --serial --continue-on-error test:backend test:frontend",
     "test:integration": "npm-run-all --serial --continue-on-error test:backend:integration test:frontend:integration",
@@ -21,7 +24,10 @@
     "test:frontend:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.integration.config.js",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "seed-load-test-users": "node performance-testing/data/seed-load-test-users.js",
+    "run-load-test": "sh performance-testing/scenarios/user-shopping-journey/run-load-test.sh",
+    "cleanup-load-test": "node performance-testing/scenarios/user-shopping-journey/cleanup.js"
   },
   "keywords": [],
   "author": "RP",
