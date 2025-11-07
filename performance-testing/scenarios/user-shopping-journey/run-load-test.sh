@@ -63,7 +63,7 @@ cd "$PROJECT_ROOT"
 node "$SCRIPT_DIR/cleanup.js"
 
 if [ $? -ne 0 ]; then
-  echo "⚠️  Cleanup encountered issues - please check manually"
+  echo "Cleanup encountered issues - please check manually"
   exit 1
 fi
 
