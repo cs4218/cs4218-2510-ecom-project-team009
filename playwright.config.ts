@@ -16,7 +16,7 @@ export default defineConfig({
   },
   globalSetup: "./playwright.global-setup.ts",
   globalTeardown: "./playwright.global-teardown.ts",
-  workers: 3,
+  workers: 1,
   webServer: [
     {
       command: "npm run client",

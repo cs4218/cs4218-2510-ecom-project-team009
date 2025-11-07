@@ -7,4 +7,7 @@ node_modules
 sonar-project.properties
 .scannerwork/
 coverage/
-/notes
+
+# Performance testing results
+performance-testing/scenarios/*/results/
+*.jtl
