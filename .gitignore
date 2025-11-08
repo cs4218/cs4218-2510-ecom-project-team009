@@ -11,3 +11,4 @@ coverage/
 # Performance testing results
 performance-testing/scenarios/*/results/
 *.jtl
+/performance-testing/results

@@ -8,6 +8,9 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoute.js";
 import cors from "cors";
+import mongoose from "mongoose";
+import productModel from "./models/productModel.js";
+import categoryModel from "./models/categoryModel.js";
 
 // configure env
 dotenv.config();
@@ -45,5 +48,22 @@ if (process.env.NODE_ENV !== "test") {
     console.log(
       `Server running on ${process.env.DEV_MODE} mode on ${PORT}`.bgCyan.white
     );
+  });
+}
+
+// Connect to database
+connectDB();
+
+// Sync indexes on startup (ONLY IN DEVELOPMENT)
+if (process.env.NODE_ENV !== "production") {
+  mongoose.connection.once("open", async () => {
+    try {
+      console.log("\n> Syncing database indexes...");
+      await productModel.syncIndexes();
+      await categoryModel.syncIndexes();
+      console.log("✓ Indexes synced successfully\n");
+    } catch (error) {
+      console.error("Error syncing indexes:", error);
+    }
   });
 }
