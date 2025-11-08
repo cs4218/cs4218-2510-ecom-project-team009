@@ -8,3 +8,6 @@ sonar-project.properties
 .scannerwork/
 coverage/
 /notes
+
+performance-testing/reports/
+performance-testing/results/
