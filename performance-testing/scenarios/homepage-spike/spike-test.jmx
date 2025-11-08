@@ -2,7 +2,7 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Spike Test - Virtual Vault E-Commerce" enabled="true">
-      <stringProp name="TestPlan.comments">Spike Test: 100 baseline → INSTANT 1000 users → back to 100 users</stringProp>
+      <stringProp name="TestPlan.comments">Spike Test: 100 baseline → INSTANT 500 users → back to 100 users</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
@@ -22,7 +22,6 @@
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
     <hashTree>
-      <!-- Phase 1: Baseline Load (100 users, 0-5 min) -->
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Phase 1: Baseline (100 Users)" enabled="true">
         <intProp name="ThreadGroup.num_threads">100</intProp>
         <intProp name="ThreadGroup.ramp_time">60</intProp>
@@ -112,7 +111,8 @@
               <stringProp name="HTTPSampler.domain">localhost</stringProp>
               <stringProp name="HTTPSampler.port">6060</stringProp>
               <stringProp name="HTTPSampler.protocol">http</stringProp>
-<stringProp name="HTTPSampler.path">${API_PREFIX}/product/product-photo/${__V(PRODUCT_IDS_${__Random(1,${PRODUCT_IDS_matchNr},)})}</stringProp>              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <stringProp name="HTTPSampler.path">${API_PREFIX}/product/product-photo/${__V(PRODUCT_IDS_${__Random(1,${PRODUCT_IDS_matchNr},)})}</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
               <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
@@ -144,9 +144,8 @@
         </hashTree>
       </hashTree>
 
-      <!-- Phase 2: SPIKE - Instant 900 additional users (5-8 min) -->
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Phase 2: SPIKE (+900 = 1000 TOTAL)" enabled="true">
-        <intProp name="ThreadGroup.num_threads">900</intProp>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Phase 2: SPIKE (+400 = 500 TOTAL)" enabled="true">
+        <intProp name="ThreadGroup.num_threads">400</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <longProp name="ThreadGroup.duration">180</longProp>
         <longProp name="ThreadGroup.delay">300</longProp>
@@ -238,7 +237,8 @@
               <stringProp name="HTTPSampler.domain">localhost</stringProp>
               <stringProp name="HTTPSampler.port">6060</stringProp>
               <stringProp name="HTTPSampler.protocol">http</stringProp>
-<stringProp name="HTTPSampler.path">${API_PREFIX}/product/product-photo/${__V(PRODUCT_IDS_${__Random(1,${PRODUCT_IDS_matchNr},)})}</stringProp>              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <stringProp name="HTTPSampler.path">${API_PREFIX}/product/product-photo/${__V(PRODUCT_IDS_${__Random(1,${PRODUCT_IDS_matchNr},)})}</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
               <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
@@ -255,7 +255,6 @@
         </hashTree>
       </hashTree>
 
-      <!-- Phase 3: Recovery - Back to baseline (8-10 min) -->
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Phase 3: Recovery (100 Users)" enabled="true">
         <intProp name="ThreadGroup.num_threads">100</intProp>
         <intProp name="ThreadGroup.ramp_time">60</intProp>
@@ -345,7 +344,8 @@
               <stringProp name="HTTPSampler.domain">localhost</stringProp>
               <stringProp name="HTTPSampler.port">6060</stringProp>
               <stringProp name="HTTPSampler.protocol">http</stringProp>
-<stringProp name="HTTPSampler.path">${API_PREFIX}/product/product-photo/${__V(PRODUCT_IDS_${__Random(1,${PRODUCT_IDS_matchNr},)})}</stringProp>              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <stringProp name="HTTPSampler.path">${API_PREFIX}/product/product-photo/${__V(PRODUCT_IDS_${__Random(1,${PRODUCT_IDS_matchNr},)})}</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
               <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
@@ -377,7 +377,6 @@
         </hashTree>
       </hashTree>
 
-      <!-- Listeners -->
       <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
