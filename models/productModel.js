@@ -17,11 +17,13 @@ const productSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: true,
+      index: true, 
     },
     category: {
       type: mongoose.ObjectId,
       ref: "Category",
       required: true,
+      index: true,
     },
     quantity: {
       type: Number,
@@ -37,5 +39,8 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Compound index for filtering by both category AND price
+productSchema.index({ category: 1, price: 1 });
 
 export default mongoose.model("Products", productSchema);

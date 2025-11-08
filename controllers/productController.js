@@ -200,7 +200,8 @@ export const updateProductController = async (req, res) => {
 };
 
 // filters
-export const productFiltersController = async (req, res) => {
+export const 
+productFiltersController = async (req, res) => {
   try {
     const { checked, radio } = req.body;
     let args = {};
