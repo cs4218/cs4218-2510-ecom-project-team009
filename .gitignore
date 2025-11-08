@@ -10,4 +10,7 @@ coverage/
 
 # Performance testing results
 performance-testing/scenarios/*/results/
+performance-testing/scenarios/*/reports/
+*.hprof
+*.log
 *.jtl
