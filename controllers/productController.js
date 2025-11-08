@@ -200,13 +200,31 @@ export const updateProductController = async (req, res) => {
 };
 
 // filters
-export const 
-productFiltersController = async (req, res) => {
+export const productFiltersController = async (req, res) => {
   try {
     const { checked, radio } = req.body;
     let args = {};
-    if (checked.length > 0) args.category = checked;
-    if (radio.length) args.price = { $gte: radio[0], $lte: radio[1] };
+    
+    // Handle category filtering - accept BOTH slugs and IDs
+    if (checked && checked.length > 0) {
+      // Check if the values look like MongoDB ObjectIDs (24 hex chars)
+      const areObjectIds = checked.every(c => /^[0-9a-fA-F]{24}$/.test(c));
+      
+      if (areObjectIds) {
+        // Already IDs, use directly
+        args.category = checked;
+      } else {
+        // Assume they're slugs, convert to IDs
+        const categories = await categoryModel.find({ slug: { $in: checked } });
+        args.category = categories.map(cat => cat._id);
+      }
+    }
+    
+    // Handle price filtering
+    if (radio && radio.length) {
+      args.price = { $gte: radio[0], $lte: radio[1] };
+    }
+    
     const products = await productModel.find(args);
     res.status(200).send({
       success: true,
@@ -216,7 +234,7 @@ productFiltersController = async (req, res) => {
     console.log(error);
     res.status(400).send({
       success: false,
-      message: "Error WHile Filtering Products",
+      message: "Error While Filtering Products",
       error,
     });
   }
