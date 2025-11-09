@@ -123,9 +123,8 @@ const volumeLevel = process.argv[2] || "small";
 const volumeLevels = {
   small: 100,
   medium: 1000,
-  large: 10000,
-  xlarge: 50000,
-  xxlarge: 100000,
+  large: 5000,
+  xlarge: 10000,
 };
 
 const productCount = volumeLevels[volumeLevel] || parseInt(volumeLevel);
