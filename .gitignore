@@ -14,4 +14,7 @@ performance-testing/scenarios/*/reports/
 *.hprof
 *.log
 *.jtl
+
+performance-testing/reports/
+performance-testing/results/
 /performance-testing/results
