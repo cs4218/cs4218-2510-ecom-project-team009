@@ -35,6 +35,9 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 3.  e2e/flows/search-feature.spec.ts
 4.  e2e/flows/order-feature.spec.ts
 
+#### Performance Tests (Capacity tests)
+1. performance-testing/scenarios/homepage-browsing/capacity-test.jmx
+
 ---
 
 ### Winston Leonard Prayonggo (A0255823B)
