@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Checkout Flow Stress Test Runner for Virtual Vault E-Commerce
-# Test Plan: 10 → 25 → 50 → 100 → 150 → 200 users over 18 minutes
+# Test Plan: 50 → 100 → 150 → 200 → 300 → 400 → 500 → 600 → 750 → 1000 users over 30 minutes
 
 set -e
 
 echo "=========================================="
 echo "Virtual Vault - Checkout Flow Stress Test"
-echo "10 → 25 → 50 → 100 → 150 → 200 Users"
+echo "50 → 100 → 150 → 200 → 300 → 400 → 500 → 600 → 750 → 1000 Users"
 echo "=========================================="
 echo ""
 
@@ -47,8 +47,8 @@ if [ ! -f "performance-testing/scenarios/checkout-flow/test-data/checkout-users.
 fi
 USER_COUNT=$(wc -l < performance-testing/scenarios/checkout-flow/test-data/checkout-users.csv)
 USER_COUNT=$((USER_COUNT - 1))  # Subtract header row
-if [ "$USER_COUNT" -lt 200 ]; then
-    echo "⚠️  CSV has only $USER_COUNT users (need 200)"
+if [ "$USER_COUNT" -lt 1000 ]; then
+    echo "⚠️  CSV has only $USER_COUNT users (need 1000)"
     echo "Please seed checkout users with: npm run seed-checkout-users"
     read -p "Continue anyway? (y/n) " -n 1 -r
     echo ""
@@ -81,14 +81,18 @@ RESULT_FILE="performance-testing/results/checkout-stress-${TIMESTAMP}.jtl"
 REPORT_DIR="performance-testing/reports/checkout-stress-${TIMESTAMP}"
 
 echo "Test Configuration:"
-echo "  - Phase 1 (0-3 min):    10 users  (baseline)"
-echo "  - Phase 2 (3-6 min):    25 users  (+15)"
-echo "  - Phase 3 (6-9 min):    50 users  (+25)"
-echo "  - Phase 4 (9-12 min):   100 users (+50)"
-echo "  - Phase 5 (12-15 min):  150 users (+50)"
-echo "  - Phase 6 (15-18 min):  200 users (+50) - PEAK"
+echo "  - Phase 1 (0-3 min):     50 users  (baseline)"
+echo "  - Phase 2 (3-6 min):     100 users (+50)"
+echo "  - Phase 3 (6-9 min):     150 users (+50)"
+echo "  - Phase 4 (9-12 min):    200 users (+50)"
+echo "  - Phase 5 (12-15 min):   300 users (+100)"
+echo "  - Phase 6 (15-18 min):   400 users (+100)"
+echo "  - Phase 7 (18-21 min):   500 users (+100)"
+echo "  - Phase 8 (21-24 min):   600 users (+100)"
+echo "  - Phase 9 (24-27 min):   750 users (+150)"
+echo "  - Phase 10 (27-30 min):  1000 users (+250) - PEAK"
 echo ""
-echo "  - Duration: 18 minutes"
+echo "  - Duration: 30 minutes"
 echo "  - User flow: Login → Get Braintree Token → Process Payment"
 echo "  - Think time: 5 seconds between checkout attempts"
 echo ""
@@ -104,7 +108,7 @@ echo "  mongosh virtual-vault --eval 'db.orders.deleteMany({})'"
 echo ""
 
 # Ask for confirmation
-read -p "Start checkout flow stress test? This will take 18 minutes. (y/n) " -n 1 -r
+read -p "Start checkout flow stress test? This will take 30 minutes. (y/n) " -n 1 -r
 echo ""
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Test cancelled"

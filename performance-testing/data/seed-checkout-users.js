@@ -16,7 +16,7 @@ const connectDB = async () => {
   }
 };
 
-// seed 200 checkout test users
+// seed 1000 checkout test users
 const seedCheckoutUsers = async () => {
   try {
     console.log("\n> Starting checkout flow stress test user seeding\n");
@@ -34,14 +34,14 @@ const seedCheckoutUsers = async () => {
       console.log("DONE: Cleaned up existing testuser accounts\n");
     }
 
-    console.log("> Creating 200 checkout test users");
+    console.log("> Creating 1000 checkout test users");
     const password = "password123";
     const hashedPassword = await hashPassword(password);
 
     const userIds = [];
-    const batchSize = 10;
+    const batchSize = 50; // Increased batch size for better performance
 
-    for (let i = 1; i <= 200; i++) {
+    for (let i = 1; i <= 1000; i++) {
       const user = await userModel.create({
         name: `Test User ${i}`,
         email: `testuser${i}@example.com`,
@@ -61,17 +61,19 @@ const seedCheckoutUsers = async () => {
 
     console.log("\nDONE: Checkout test user seeding complete\n");
     console.log("INFO: Summary");
-    console.log(`  Users created: 200`);
-    console.log(`  Email pattern: testuser1@example.com to testuser200@example.com`);
-    console.log(`  Password (all): password123`);
-    console.log(`  Pattern: testuser[1-200]@example.com (for easy cleanup)`);
-    console.log("\n> Ready for checkout flow stress testing");
+    console.log(`  Users created: 1000`);
     console.log(
-      `> Next steps:`
+      `  Email pattern: testuser1@example.com to testuser1000@example.com`
     );
-    console.log(`  1. Ensure backend is running on port 8080`);
+    console.log(`  Password (all): password123`);
+    console.log(`  Pattern: testuser[1-1000]@example.com (for easy cleanup)`);
+    console.log("\n> Ready for checkout flow stress testing");
+    console.log(`> Next steps:`);
+    console.log(`  1. Ensure backend is running on port 6060`);
     console.log(`  2. Ensure test data is seeded: npm run seed-stress-test`);
-    console.log(`  3. Run: ./performance-testing/scenarios/checkout-flow/run-stress-test.sh\n`);
+    console.log(
+      `  3. Run: ./performance-testing/scenarios/checkout-flow/run-stress-test.sh\n`
+    );
 
     process.exit(0);
   } catch (error) {

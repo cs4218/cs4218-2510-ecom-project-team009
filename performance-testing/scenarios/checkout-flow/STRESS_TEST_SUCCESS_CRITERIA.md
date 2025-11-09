@@ -3,8 +3,8 @@
 ## Test Overview
 **Scenario**: Checkout Flow (Login → Get Payment Token → Process Payment)
 **Test Type**: Write-Heavy Stress Test
-**Load Pattern**: 10 → 25 → 50 → 100 → 150 → 200 concurrent users over 18 minutes
-**Test Duration**: 18 minutes (6 phases × 3 minutes each)
+**Load Pattern**: 50 → 100 → 150 → 200 → 300 → 400 → 500 → 600 → 750 → 1000 concurrent users over 30 minutes
+**Test Duration**: 30 minutes (10 phases × 3 minutes each)
 
 ---
 
@@ -14,30 +14,35 @@
 
 | Phase | Users | p50 (Median) | p95 | p99 | Max Acceptable |
 |-------|-------|--------------|-----|-----|----------------|
-| **Phase 1-2** (Baseline) | 10-25 | < 300ms | < 500ms | < 1000ms | 1500ms |
-| **Phase 3-4** (Moderate Stress) | 50-100 | < 500ms | < 1500ms | < 3000ms | 4000ms |
-| **Phase 5-6** (High Stress) | 150-200 | < 1000ms | < 3000ms | < 6000ms | 10000ms |
+| **Phase 1-3** (Baseline) | 50-150 | < 200ms | < 500ms | < 1000ms | 2500ms |
+| **Phase 4-5** (Normal) | 200-300 | < 300ms | < 800ms | < 2000ms | 4000ms |
+| **Phase 6-7** (Stress) | 400-500 | < 500ms | < 2000ms | < 4000ms | 6000ms |
+| **Phase 8-10** (Breaking) | 600-1000 | < 1000ms | < 4000ms | < 8000ms | 8000ms |
 
 **Note**: Payment requests (POST /braintree/payment) allowed up to 3000ms response time due to external Braintree API
 
 ### Response Time Targets by Endpoint
 
-| Endpoint | Baseline (10-25 users) | Moderate Stress (50-100 users) | High Stress (150-200 users) |
-|----------|----------------------|------------------------------|---------------------------|
-| **POST Login** | < 500ms | < 1000ms | < 2000ms |
-| **GET Braintree Token** | < 1000ms | < 2000ms | < 3000ms |
-| **POST Payment** | < 3000ms | < 5000ms | < 8000ms |
+| Endpoint | Baseline (50-150 users) | Normal (200-300 users) | Stress (400-500 users) | Breaking (600-1000 users) |
+|----------|------------------------|------------------------|------------------------|---------------------------|
+| **POST Login** | < 500ms | < 800ms | < 1200ms | < 2000ms |
+| **GET Braintree Token** | < 1500ms | < 2500ms | < 3500ms | < 5000ms |
+| **POST Payment** | < 2500ms | < 4000ms | < 6000ms | < 8000ms |
 
 ### Throughput Targets
 
 | Phase | Users | Min Orders/min | Target Orders/min |
 |-------|-------|----------------|-------------------|
-| Phase 1 | 10 | 10 orders/min | 12 orders/min |
-| Phase 2 | 25 | 20 orders/min | 25 orders/min |
-| Phase 3 | 50 | 30 orders/min | 40 orders/min |
-| Phase 4 | 100 | 50 orders/min | 60 orders/min |
-| Phase 5 | 150 | 60 orders/min | 75 orders/min |
-| Phase 6 | 200 | 70 orders/min | 80 orders/min |
+| Phase 1 | 50 | 30 orders/min | 40 orders/min |
+| Phase 2 | 100 | 50 orders/min | 60 orders/min |
+| Phase 3 | 150 | 60 orders/min | 75 orders/min |
+| Phase 4 | 200 | 70 orders/min | 80 orders/min |
+| Phase 5 | 300 | 80 orders/min | 100 orders/min |
+| Phase 6 | 400 | 90 orders/min | 110 orders/min |
+| Phase 7 | 500 | 100 orders/min | 120 orders/min |
+| Phase 8 | 600 | 110 orders/min | 130 orders/min |
+| Phase 9 | 750 | 120 orders/min | 140 orders/min |
+| Phase 10 | 1000 | 130 orders/min | 150 orders/min |
 
 ---
 
@@ -59,9 +64,10 @@
 
 | Phase | Users | Maximum Acceptable Error Rate |
 |-------|-------|-------------------------------|
-| Phase 1-2 | 10-25 | **< 1%** (baseline should be nearly error-free) |
-| Phase 3-4 | 50-100 | **< 2%** (minimal errors acceptable) |
-| Phase 5-6 | 150-200 | **< 5%** (stress conditions, some errors expected) |
+| Phase 1-3 | 50-150 | **< 1%** (baseline should be nearly error-free) |
+| Phase 4-5 | 200-300 | **< 2%** (minimal errors acceptable) |
+| Phase 6-7 | 400-500 | **< 5%** (stress conditions, some errors expected) |
+| Phase 8-10 | 600-1000 | **< 10%** (breaking point expected, degradation acceptable) |
 
 ---
 
@@ -81,14 +87,14 @@ The breaking point is identified when **ANY** of the following occur:
 
 ### Expected Breaking Point Range
 
-**Target**: System should handle **100-150 users** before breaking (write-heavy operations)
+**Target**: System should handle **600-750 users** before breaking (write-heavy operations)
 
-- ✅ **Excellent**: Breaking point at 150+ users
-- ✅ **Good**: Breaking point at 100-150 users
-- ⚠️ **Acceptable**: Breaking point at 50-100 users
-- ❌ **Poor**: Breaking point < 50 users
+- ✅ **Excellent**: Breaking point at 750+ users
+- ✅ **Good**: Breaking point at 600-750 users
+- ⚠️ **Acceptable**: Breaking point at 400-600 users
+- ❌ **Poor**: Breaking point < 400 users
 
-**Rationale**: Checkout flow is write-heavy (order creation, payment processing) vs homepage browsing (read-heavy), so breaking point expected at lower user count.
+**Rationale**: Checkout flow is write-heavy (order creation, payment processing) vs homepage browsing (read-heavy). With optimized thresholds, system should handle higher concurrency before breaking.
 
 ---
 
@@ -112,28 +118,28 @@ The breaking point is identified when **ANY** of the following occur:
 ### Overall Test Result
 
 **PASS** if ALL of the following are true:
-- ✅ Phase 1-2 (10-25 users) have **< 1% error rate**
-- ✅ Phase 1-3 (10-50 users) meet **p95 < 1500ms**
-- ✅ Error rate never exceeds **5%** across all phases
-- ✅ Breaking point occurs at **≥ 50 users**
+- ✅ Phase 1-3 (50-150 users) have **< 1% error rate**
+- ✅ Phase 1-5 (50-300 users) meet **p95 < 2000ms**
+- ✅ Error rate never exceeds **5%** across phases 1-7
+- ✅ Breaking point occurs at **≥ 600 users**
 - ✅ No server crashes or critical failures
 - ✅ Orders created successfully (verify database integrity)
-- ✅ Payment endpoint p95 < 3000ms for phases 1-2
+- ✅ Payment endpoint p95 < 2000ms for phases 1-3
 
 **MARGINAL PASS** if ALL of the following are true:
-- ✅ Phase 1-2 (10-25 users) have **< 2% error rate**
-- ✅ Phase 1-3 (10-50 users) meet **p95 < 2500ms**
+- ✅ Phase 1-3 (50-150 users) have **< 2% error rate**
+- ✅ Phase 1-5 (50-300 users) meet **p95 < 3000ms**
 - ✅ Error rate never exceeds **10%**
-- ✅ Breaking point occurs at **≥ 25 users**
+- ✅ Breaking point occurs at **≥ 400 users**
 - ⚠️ May have minor Braintree API issues but system remains stable
 
 **FAIL** if ANY of the following occur:
-- ❌ Phase 1-2 (baseline) have **> 2% error rate**
-- ❌ Error rate exceeds **10%** at any phase
-- ❌ Breaking point occurs at **< 25 users**
+- ❌ Phase 1-3 (baseline) have **> 2% error rate**
+- ❌ Error rate exceeds **10%** at phases 1-7
+- ❌ Breaking point occurs at **< 400 users**
 - ❌ Server crashes or requires restart
 - ❌ Data corruption detected (duplicate orders, failed transactions with created orders)
-- ❌ Payment endpoint p95 > 5000ms at baseline (10-25 users)
+- ❌ Payment endpoint p95 > 2000ms at baseline (50-150 users)
 
 ---
 
@@ -147,11 +153,13 @@ All HTTP requests include the following automatic validations:
 - **Expected**: HTTP 200
 - **Action on Failure**: Mark sample as failed (increases error %)
 
-#### Duration Assertion
-- **POST Login**: < 500ms
-- **GET Braintree Token**: < 1000ms
-- **POST Payment**: < 3000ms (external API tolerance)
+#### Duration Assertion (Phase-Specific)
+- **Baseline (Phases 1-3)**: Login 500ms, Token 1500ms, Payment 2500ms
+- **Normal (Phases 4-5)**: Login 800ms, Token 2500ms, Payment 4000ms
+- **Stress (Phases 6-7)**: Login 1200ms, Token 3500ms, Payment 6000ms
+- **Breaking (Phases 8-10)**: Login 2000ms, Token 5000ms, Payment 8000ms
 - **Action on Failure**: Mark sample as failed if response time exceeds threshold
+- **Rationale**: Login thresholds moderately relaxed to account for backend processing (JWT generation, password hashing). Token and Payment thresholds are tighter, especially in phases 6-10, since both depend on Braintree's enterprise-grade infrastructure which should handle load well. Payment thresholds are higher than Token to account for transaction processing complexity and database write operations, but the gap is smaller than initially proposed.
 
 #### JSON Assertions (Functional Validation)
 - **Login Response**: Verify `$.token` exists
@@ -174,10 +182,10 @@ Your stress test report MUST include:
 
 1. **Test Configuration Summary**
    - Date/time of test execution
-   - Duration: 18 minutes
-   - Load pattern: 10 → 200 users (6 phases × 3 minutes)
+   - Duration: 30 minutes
+   - Load pattern: 50 → 1000 users (10 phases × 3 minutes)
    - JMX file: `stress-test.jmx`
-   - Test users: 200 users (testuser1@example.com to testuser200@example.com)
+   - Test users: 1000 users (testuser1@example.com to testuser1000@example.com)
 
 2. **Results by Phase** (table format)
    - Users per phase
@@ -230,30 +238,38 @@ Your stress test report MUST include:
 
 Use this checklist when analyzing test results:
 
-### Baseline Performance (Phase 1-2: 10-25 Users)
+### Baseline Performance (Phase 1-3: 50-150 Users)
 - [ ] Error rate < 1%
-- [ ] Login p95 < 500ms
-- [ ] Token p95 < 1000ms
-- [ ] Payment p95 < 3000ms
-- [ ] Throughput ≥ 20 orders/min (Phase 2)
+- [ ] Login p95 < 200ms
+- [ ] Token p95 < 1200ms
+- [ ] Payment p95 < 2000ms
+- [ ] Throughput ≥ 60 orders/min (Phase 3)
 - [ ] No server errors (5xx responses)
 
-### Moderate Stress (Phase 3-4: 50-100 Users)
+### Normal Load (Phase 4-5: 200-300 Users)
 - [ ] Error rate < 2%
-- [ ] Login p95 < 1000ms
-- [ ] Token p95 < 2000ms
-- [ ] Payment p95 < 5000ms
-- [ ] Throughput ≥ 50 orders/min (Phase 4)
+- [ ] Login p95 < 300ms
+- [ ] Token p95 < 1500ms
+- [ ] Payment p95 < 3000ms
+- [ ] Throughput ≥ 80 orders/min (Phase 4)
 - [ ] Server remains stable (no crashes)
 - [ ] Database write performance acceptable
 
-### High Stress (Phase 5-6: 150-200 Users)
-- [ ] Error rate < 5% (breaking point may occur here)
-- [ ] Login p95 < 2000ms
-- [ ] Token p95 < 3000ms
+### Stress Conditions (Phase 6-7: 400-500 Users)
+- [ ] Error rate < 5%
+- [ ] Login p95 < 500ms
+- [ ] Token p95 < 2500ms
+- [ ] Payment p95 < 5000ms
+- [ ] Throughput ≥ 100 orders/min (Phase 7)
+- [ ] Server remains stable (no crashes)
+- [ ] Database write performance acceptable
+
+### Breaking Point (Phase 8-10: 600-1000 Users)
+- [ ] Error rate < 10% (breaking point expected here)
+- [ ] Login p95 < 1000ms
+- [ ] Token p95 < 4000ms
 - [ ] Payment p95 < 8000ms
-- [ ] Throughput ≥ 60 orders/min (Phase 5)
-- [ ] Identify breaking point user count
+- [ ] Identify breaking point user count (expected 600-750)
 - [ ] Braintree API rate limit behavior documented
 
 ### System Stability
@@ -264,7 +280,7 @@ Use this checklist when analyzing test results:
 - [ ] JWT token generation performance acceptable
 
 ### Breaking Point Analysis
-- [ ] Breaking point identified at ≥ 50 users
+- [ ] Breaking point identified at ≥ 600 users
 - [ ] Breaking point cause documented (Braintree API, DB write, CPU, etc.)
 - [ ] Bottleneck identified (payment API, database write contention, JWT generation)
 
@@ -450,4 +466,4 @@ Monitor if throughput plateaus or declines:
 
 **Last Updated**: 2025-11-08
 **Author**: CS4218 Team
-**Test Version**: 1.0
+**Test Version**: 2.0

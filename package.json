@@ -12,6 +12,7 @@
     "sonarqube": "sonar-scanner",
     "seed-stress-test": "node performance-testing/data/seed-test-data.js",
     "seed-load-test-users": "node performance-testing/data/seed-load-test-users.js",
+    "seed-checkout-users": "node performance-testing/data/seed-checkout-users.js",
     "run-load-test": "sh performance-testing/scenarios/user-shopping-journey/run-load-test.sh",
     "cleanup-load-test": "node performance-testing/scenarios/user-shopping-journey/cleanup.js",
     "test": "npm-run-all --serial --continue-on-error test:unit test:integration",
