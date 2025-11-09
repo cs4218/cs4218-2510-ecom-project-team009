@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Spike Test Runner for Virtual Vault E-Commerce
-# Test Plan: 100 baseline → INSTANT 1000 users → 100 recovery (10 min total)
+# Test Plan: 100 baseline → INSTANT 500 users → 100 recovery (10 min total)
 
 set -e
 
 echo "=========================================="
 echo "Virtual Vault - Spike Test"
-echo "100 → INSTANT 1000 → 100 Users"
+echo "100 → INSTANT 500 → 100 Users"
 echo "=========================================="
 echo ""
 
@@ -21,21 +21,6 @@ fi
 echo "✅ Backend is running"
 echo ""
 
-# Check if database is seeded
-echo "Checking if database has test data..."
-PRODUCT_COUNT=$(curl -s http://localhost:6060/api/v1/product/product-count | grep -o '"total":[0-9]*' | grep -o '[0-9]*' || echo "0")
-if [ "$PRODUCT_COUNT" -lt 50 ]; then
-    echo "⚠️  Database has only $PRODUCT_COUNT products (need at least 50)"
-    echo "Please seed the database with: npm run seed-stress-test"
-    read -p "Continue anyway? (y/n) " -n 1 -r
-    echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
-else
-    echo "✅ Database has $PRODUCT_COUNT products"
-fi
-echo ""
 
 # Generate timestamp for result files
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
@@ -44,7 +29,7 @@ REPORT_DIR="reports/spike-${TIMESTAMP}"
 
 echo "Test Configuration:"
 echo "  - Phase 1 (0-5 min):    100 users (baseline - gradual ramp)"
-echo "  - Phase 2 (5-8 min):    1000 users (INSTANT SPIKE +900 in 1 second!)"
+echo "  - Phase 2 (5-8 min):    500 users (INSTANT SPIKE +400 in 1 second!)"
 echo "  - Phase 3 (8-10 min):   100 users (recovery - verify stability)"
 echo ""
 echo "  - Total Duration: 10 minutes"

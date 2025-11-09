@@ -58,6 +58,11 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 1. e2e/flows/home-cart-payment.spec.ts
 2. e2e/flows/home-category.spec.ts
 
+#### Performance testing (Spike test):
+
+1. performance-testing/scenarios/homepage-spike
+2. performance-testing/scenarios/payment-spike
+
 #### Bug Fix:
 
 ##### **HomePage.js**
@@ -80,9 +85,9 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
   Fixed by ensuring each rendered item in the cart list uses a unique key
 - **Cart not user-specific:**  
   Cart contents did not differ between logged-in accounts. Fixed by namespacing localStorage keys (e.g., `cart_<userId>`).
-  - **Users logged in for more than 7 days are unable to make payment:**  
-    The JWT token for the user has already expired, making them unable to make
-    a payment. Current Fix: Set the expiry token to 365 days.
+- **Users logged in for more than 7 days are unable to make payment:**  
+   The JWT token for the user has already expired, making them unable to make
+  a payment. Current Fix: Set the expiry token to 365 days.
 
 ##### **categoryController.js**
 
@@ -103,6 +108,11 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 
 - **Missing required validation:**  
   Uncommented `required: true` for the `name` field to enforce category name validation at the schema level.
+
+##### **Performace testing bugs**
+
+- **Homepage spike testing:**  
+  Homepage was not able to recover after a sudden spike of 750 users from a baseline of 100 users.
 
 ---
 
@@ -143,58 +153,69 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 
 - **Price filter not uncheckable:**  
   Price filters used `Radio` buttons which cannot be unchecked once selected. Users had no way to clear price filters without using the "RESET FILTERS" button.
+
   > Fixed by converting price filters from `Radio.Group` to individual `Checkbox` components with controlled state management.
 
 - **Price range gaps (non-inclusive boundaries):**  
   Price ranges had gaps between tiers (e.g., $60-79 and $80-99 excluded $79.90).
+
   > Fixed by updating `Prices.js` to use `.99` endings: `[0, 19.99]`, `[20, 39.99]`, etc., ensuring all price points are covered.
 
 - **Reset filters causes full page refresh:**  
   The "RESET FILTERS" button used `window.location.reload()`, which cleared all application state including cart contents and user session.
+
   > Fixed by replacing page reload with state updates: `setChecked([])`, `setRadio([])`, `setPage(1)`, and calling `getAllProducts()` to reload data without losing state.
 
 - **Filter headers not aligned:**  
   "Filter By Category" header was misaligned compared to "Filter By Price" and filter checkboxes.
+
   > Fixed by adding consistent `mt-4` (margin-top) class to both filter section headers.
 
 - **Checkbox labels rendering below checkboxes:**  
   Ant Design `Checkbox` components had labels wrapping to a new line instead of appearing inline with the checkbox.
+
   > Fixed by adding CSS class `.filter-checkbox` with `display: flex`, `align-items: center`, and forcing child `<span>` elements to `display: inline`.
 
 - **Product card buttons not vertically aligned:**  
   Products with multi-line titles (e.g., "The Law of Contract in Singapore") created taller cards, causing "Details" and "Add to Cart" buttons to misalign across the product grid.
+
   > Fixed by implementing flexbox layout with fixed card height (`32rem`), fixed image height (`300px`), and `margin-top: auto` on button container to push buttons to the bottom of each card.
 
 - **Filter not updating total count:**  
   When applying category or price filters, the total product count was not refreshed, causing pagination logic to break and prevent filtered results from displaying correctly.
+
   > Fixed by updating `filterProduct()` to set `setTotal(data?.products.length)` whenever filters change.
 
 - **Infinite photo loading loop on filter:**  
-  When users applied category or price filters, the application loaded *all* matching products simultaneously instead of using pagination, triggering thousands of HTTP photo requests and causing browser tab crashes.
+  When users applied category or price filters, the application loaded _all_ matching products simultaneously instead of using pagination, triggering thousands of HTTP photo requests and causing browser tab crashes.
   > Fixed by: (1) Adding pagination to `productFiltersController` with `skip()` and `limit()`, (2) Updating `useEffect` dependencies to only load first page on filter change, (3) Adding `loading="lazy"` to `<img>` tags to defer off-screen image loads.
 
 ### **productController.js**
 
 - **Typo fixes:**  
   Multiple spelling errors throughout error messages and comments:
+
   - "Erorr" → "Error"
   - "upate producta" → "update product"
   - "alidation" → "validation"
   - "Updte" → "Update"
   - "realted" → "related"
-  > Fixed all typos to improve code readability and professionalism.
+    > Fixed all typos to improve code readability and professionalism.
 
 - **Application crash when `req.params.pid` is "undefined":**  
   The `productPhotoController` did not handle cases where `product.photo` was null or undefined, causing crashes when accessing `product.photo.data`.
+
   > Fixed by adding optional chaining: `if (product?.photo?.data)` to safely check for photo existence.
 
 - **Incorrect HTTP status code for validation failures:**  
   Validation errors (e.g., missing required fields) returned HTTP 500 (Internal Server Error) instead of 400 (Bad Request).
+
   > Fixed by updating error responses to use `res.status(400)` for client-side validation failures.
 
 - **Missing separate validation for photo presence vs. photo size:**  
   Photo validation logic did not distinguish between "photo not provided" and "photo too large", making error messages unclear.
   > Fixed by creating separate validation checks:
+  >
   > - Check if photo exists
   > - Then check if photo size exceeds limit
   > - Return specific error messages for each case
@@ -203,6 +224,7 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 
 - **Typo in variable name:**  
   Initial product state variable was misspelled as `initalp`.
+
   > Fixed: `initalp` → `initialProduct` for clarity and correctness.
 
 - **Invalid JSX attribute:**  
@@ -214,14 +236,16 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 - **"Add to Cart" button not functional:**  
   The "Add to Cart" button on both main products and similar products did not add items to cart or show success toast messages.
   > Fixed by implementing proper cart state management:
+  >
   > - Add product to cart state: `setCart([...cart, p])`
-  > - Persist to localStorage with user-specific key: `localStorage.setItem(\`cart_${userId}\`, JSON.stringify([...cart, p]))`
+  > - Persist to localStorage with user-specific key: `localStorage.setItem(\`cart\_${userId}\`, JSON.stringify([...cart, p]))`
   > - Display success toast: `toast.success("Item Added to cart")`
 
 ### **Header.js**
 
 - **Missing `key` prop in category mapping:**  
   Categories were mapped without unique `key` attributes, producing React warnings:
+
   > "Each child in a list should have a unique 'key' prop."
   > Fixed by adding `key={c._id}` to each mapped category element.
 
@@ -234,13 +258,14 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 - **Missing PropTypes validation:**  
   Component did not validate `children` and `title` props, allowing incorrect prop types to be passed without warnings.
   > Added PropTypes validation:
+  >
   > ```javascript
   > Layout.propTypes = {
   >   children: PropTypes.node.isRequired,
   >   title: PropTypes.string,
   >   description: PropTypes.string,
   >   keywords: PropTypes.string,
-  >   author: PropTypes.string
+  >   author: PropTypes.string,
   > };
   > ```
 
@@ -267,7 +292,8 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 
 **Total bugs fixed: 25 across 9 files**  
 **Impact:** Improved user experience, eliminated crashes, fixed navigation, enhanced accessibility, and resolved all React warnings.
-  ---
+
+---
 
 ### John Michael San Diego (A0253342M)
 
