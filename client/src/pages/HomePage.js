@@ -127,12 +127,13 @@ const HomePage = () => {
       {/* banner image */}
       <div className="container-fluid row mt-3 home-page">
         <div className="col-md-3 filters">
-          <h4 className="text-center">Filter By Category</h4>
+          <h4 className="text-center mt-4">Filter By Category</h4>
           <div className="d-flex flex-column">
             {categories?.map((c) => (
               <Checkbox
                 key={c._id}
                 onChange={(e) => handleFilter(e.target.checked, c._id)}
+                className="filter-checkbox"
               >
                 {c.name}
               </Checkbox>
@@ -141,18 +142,32 @@ const HomePage = () => {
           {/* price filter */}
           <h4 className="text-center mt-4">Filter By Price</h4>
           <div className="d-flex flex-column">
-            <Radio.Group onChange={(e) => setRadio(e.target.value)}>
-              {Prices?.map((p) => (
-                <div key={p._id}>
-                  <Radio value={p.array}>{p.name}</Radio>
-                </div>
-              ))}
-            </Radio.Group>
+            {Prices?.map((p) => (
+              <Checkbox
+                key={p._id}
+                checked={JSON.stringify(radio) === JSON.stringify(p.array)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setRadio(p.array);
+                  } else {
+                    setRadio([]);
+                  }
+                }}
+                className="filter-checkbox"
+              >
+                {p.name}
+              </Checkbox>
+            ))}
           </div>
           <div className="d-flex flex-column">
             <button
               className="btn btn-danger"
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                setChecked([]);
+                setRadio([]);
+                setPage(1);
+                getAllProducts();
+              }}
             >
               RESET FILTERS
             </button>
@@ -184,15 +199,18 @@ const HomePage = () => {
                   </p>
                   <div className="card-name-price">
                     <button
-                      className="btn btn-info ms-1"
+                      className="btn btn-info"
+                      style={{ flex: 1, marginRight: '4px' }}
                       onClick={() => navigate(`/product/${p.slug}`)}
                     >
-                      More Details
+                      Details
                     </button>
                     <button
-                      className="btn btn-dark ms-1"
+                      className="btn btn-dark"
+                      style={{ flex: 1, marginLeft: '4px' }}
                       onClick={() => {
                         setCart([...cart, p]);
+                        const userId = auth?.user?._id || "guest";
                         localStorage.setItem(
                           `cart_${userId}`,
                           JSON.stringify([...cart, p])
@@ -200,7 +218,7 @@ const HomePage = () => {
                         toast.success("Item Added to cart");
                       }}
                     >
-                      ADD TO CART
+                      Add to Cart
                     </button>
                   </div>
                 </div>
@@ -226,6 +244,60 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+      <style jsx>{`
+        /* Add these styles at the end */
+
+        .home-page .d-flex.flex-wrap {
+          align-items: stretch; /* Make all cards same height */
+          display: flex !important;
+          flex-wrap: wrap !important;
+        }
+
+        .home-page .card.m-2 {
+          display: flex !important;
+          flex-direction: column !important;
+          width: 18rem !important;
+          height: 32rem !important; /* FIXED HEIGHT */
+          margin: 0.5rem !important;
+        }
+
+        .home-page .card-img-top {
+          height: 300px !important; /* Fixed image height */
+          object-fit: cover !important;
+        }
+
+        .home-page .card-body {
+          display: flex !important;
+          flex-direction: column !important;
+          flex: 1 !important;
+          padding: 1rem !important;
+        }
+
+        .home-page .card-title {
+          min-height: 3rem !important; /* Reserve space for 2-line titles */
+          margin-bottom: 0.5rem !important;
+        }
+
+        .home-page .card-text {
+          flex: 1 !important;
+          margin-bottom: 1rem !important;
+        }
+
+        .home-page .card-name-price:last-child {
+          margin-top: auto !important; /* Push buttons to bottom */
+        }
+
+        .filter-checkbox {
+          display: flex !important;
+          align-items: center !important;
+          margin-left: 0 !important;
+          width: 100% !important;
+        }
+
+        .filter-checkbox > span {
+          display: inline !important;
+        }
+      `}</style>
     </Layout>
   );
 };
