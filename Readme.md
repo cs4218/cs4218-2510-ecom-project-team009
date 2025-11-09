@@ -137,7 +137,41 @@ For each mentioned file/method, bug fixes and unit tests have been written for t
 1. category-product.spec.ts
 2. product-details.spec.ts
 
----
+
+#### Bug Fix:
+
+##### **HomePage.js**
+
+- **Duplicate key warning:**  
+  In `Prices.js`, multiple items shared the same `_id`, producing the React warning:
+  > “Encountered two children with the same key.”  
+  > Fixed by ensuring each rendered element uses a unique key.
+- **Missing `key` prop in Header.js:**  
+  Categories were mapped without unique keys. Added `key` attributes to each element.
+- **Filter not updating total count:**  
+  When filtering products, the total product count was not refreshed, causing a the filtered products to not show. Fixed logic to update the total count whenever filters change.
+
+##### **productController.js**
+- **Typo Fixes**  
+   “Erorr”, “upate producta”, “alidation”, “Updte”, “realted”
+
+##### **productDetails.js**
+  Fixed Typo: “initalp - initial”
+  Fixed “class” -> “className”
+
+##### **CategoryProduct.js**
+Fix add to cart button for main product and similar product
+
+##### **Header.js **
+Removed unnecessary React Fragments (<> </>)
+
+##### **Layout.js**
+Add Proptype validation
+
+##### **Spinner.js**
+Changed div with role = “status” to output element
+
+  ---
 
 ### John Michael San Diego (A0253342M)
 
