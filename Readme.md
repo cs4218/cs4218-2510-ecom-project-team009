@@ -171,6 +171,9 @@ Add Proptype validation
 ##### **Spinner.js**
 Changed div with role = “status” to output element
 
+##### **ProductRoutes.js**
+Fixed Typo: "rproduct - product"
+
   ---
 
 ### John Michael San Diego (A0253342M)
