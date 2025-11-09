@@ -62,17 +62,19 @@ const HomePage = () => {
     }
   };
 
-  useEffect(() => {
-    if (page === 1) return;
-    loadMore();
-  }, [page]);
+  // useEffect(() => {
+  //   if (page === 1) return;
+  //   loadMore();
+  // }, [page]);
   //load more
   const loadMore = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
+      const nextPage = page + 1;
+      const { data } = await axios.get(`/api/v1/product/product-list/${nextPage}`);
       setLoading(false);
       setProducts([...products, ...data?.products]);
+      setPage(nextPage);  // Increment page AFTER successful load
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -90,7 +92,10 @@ const HomePage = () => {
     setChecked(all);
   };
   useEffect(() => {
-    if (!checked.length && !radio.length) getAllProducts();
+    if (!checked.length && !radio.length) {
+      console.log("fetching all products");
+      getAllProducts();
+    }
   }, [checked.length, radio.length]);
 
   useEffect(() => {
@@ -162,6 +167,7 @@ const HomePage = () => {
                   src={`/api/v1/product/product-photo/${p._id}`}
                   className="card-img-top"
                   alt={p.name}
+                  loading="lazy"
                 />
                 <div className="card-body">
                   <div className="card-name-price">
@@ -207,14 +213,11 @@ const HomePage = () => {
                 className="btn loadmore"
                 onClick={(e) => {
                   e.preventDefault();
-                  setPage(page + 1);
+                  loadMore();  // Just call loadMore, it handles page increment
                 }}
               >
-                {loading ? (
-                  "Loading ..."
-                ) : (
+                {loading ? "Loading ..." : (
                   <>
-                    {" "}
                     Loadmore <AiOutlineReload />
                   </>
                 )}

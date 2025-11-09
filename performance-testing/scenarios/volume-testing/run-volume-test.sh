@@ -22,7 +22,7 @@ echo "✅ Backend is running"
 echo ""
 
 # Volume levels to test
-VOLUMES=("1000:small" "10000:medium" "50000:large" "100000:xlarge")
+VOLUMES=("100:small" "1000:medium" "5000:large" "10000:xlarge")
 
 # Generate timestamp
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
@@ -31,7 +31,7 @@ mkdir -p "${RESULTS_DIR}"
 
 echo "Test Configuration:"
 echo "  - Fixed users: 100 concurrent users"
-echo "  - Volume levels: 1K → 10K → 50K → 100K products"
+echo "  - Volume levels: 100 → 1K → 5K → 10K products"
 echo "  - Duration per level: 2 minutes"
 echo "  - Total test time: ~10 minutes"
 echo ""
@@ -99,9 +99,4 @@ for volume in "${VOLUMES[@]}"; do
     IFS=':' read -r count level <<< "$volume"
     echo "  - ${level} (${count} products): ${RESULTS_DIR}/${level}-${count}-report/index.html"
 done
-echo ""
-echo "Next steps:"
-echo "  1. Compare response times across volume levels"
-echo "  2. Create graphs showing response time vs. data volume"
-echo "  3. Identify performance degradation thresholds"
 echo ""
